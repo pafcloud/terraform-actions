@@ -1,0 +1,34 @@
+name: Find terragrunt config changes
+description: Find paths with changes to 'terragrunt.hcl' files. Omit paths that has no-terragrunt-apply file present.
+
+inputs:
+  github-token:
+    description: GitHub auth token
+    required: true
+  pull-request-number:
+    description: Pull request number
+    required: true
+
+outputs:
+  paths:
+    description: Json list of paths
+    value: ${{ steps.changes.outputs.paths }}
+
+runs:
+  using: composite
+  steps: 
+    - id: changes
+      run: |
+        URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${{ inputs.pull-request-number }}/files"
+        AUTH_HEADER="Authorization: Bearer ${{ inputs.github-token }}"
+
+        changes=$(for d in $(curl -sH "${AUTH_HEADER}" ${URL} | jq -r '.[] | .filename' | grep terragrunt.hcl$ | sed 's/terragrunt.hcl//'); do
+          # skip paths where no-terragrunt-apply exists
+          if [ \! -f $d/no-terragrunt-apply ]; then
+            echo $d
+          fi
+        done)
+
+        # split to json list
+        echo ::set-output name=paths::$(echo -n ${changes} | jq -Rsc 'split(" ")')
+      shell: bash

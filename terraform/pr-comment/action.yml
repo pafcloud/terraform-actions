@@ -1,0 +1,92 @@
+name: Add terraform plan or apply output to a pull request comment
+description: Add terraform plan or apply output to a pull request comment
+
+inputs:
+  github-token:
+    description: GitHub auth token
+    required: true
+  terraform-stdout:
+    description: Terraform standard out
+    required: true
+  terraform-stderr:
+    description: Terraform standard err
+    required: true
+  terraform-exit-code:
+    description: Terraform exit code
+    required: true
+  terraform-run-type:
+    description: Whatever this is run is plan or apply
+    default: plan
+  pull-request-number:
+    description: Pull request number
+    required: true
+  working-directory:
+    description: Working directory
+    required: true
+
+
+runs:
+  using: composite
+  steps:
+    - run: |
+        # Some parts borrowed here: https://github.com/robburger/terraform-pr-commenter/blob/6e991422c10b4744765245fc370d61f40136c9ec/entrypoint.sh
+        EXIT_CODE=${{ inputs.terraform-exit-code }}
+        ACCEPT_HEADER="Accept: application/vnd.github.v3+json"
+        AUTH_HEADER="Authorization: token ${{ inputs.github-token }}"
+        CONTENT_HEADER="Content-Type: application/json"
+        PR_COMMENTS_URL="https://api.github.com/repos/${{ github.repository }}/issues/${{ inputs.pull-request-number }}/comments"
+
+        case "${{ inputs.terraform-run-type }}" in
+
+          plan)
+            if [ ${EXIT_CODE} -eq 0 ]; then
+              # Plan succeeded
+              # Strip out the refresh section (everything before the 72 '-' characters) and build PR comment.
+              CLEAN_PLAN=$(echo "$INPUT" | sed -nr '/-{72}/,/-{72}/{ /-{72}/d; p }') # Strip refresh section
+              CLEAN_PLAN=${CLEAN_PLAN::65300} # GitHub has a 65535-char comment limit - truncate plan, leaving space for comment wrapper
+              CLEAN_PLAN=$(echo "$CLEAN_PLAN" | sed -E 's/^([[:blank:]]*)([-+~])/\2\1/g') # Move any diff characters to start of line
+              PR_COMMENT="### Terraform \`plan\` (${{ inputs.working-directory }})
+        <details><summary>Show Output</summary>
+
+        \`\`\`diff
+        $CLEAN_PLAN
+        \`\`\`
+        </details>"
+            else
+              PR_COMMENT="### Terraform \`plan\` Failed (${{ inputs.working-directory }})
+        <details open><summary>Show Output</summary>
+
+        \`\`\`
+        $INPUT
+        \`\`\`
+        </details>"
+            fi
+            ;;
+
+          apply)
+            if [ $EXIT_CODE -eq 0 ]; then
+              PR_COMMENT="### Terraform \`apply\` (${{ inputs.working-directory }})
+        <details><summary>Show Output</summary>
+
+        \`\`\`
+        $INPUT
+        \`\`\`
+        </details>"
+            else
+              PR_COMMENT="### Terraform \`apply\` Failed (${{ inputs.working-directory }})
+        <details open><summary>Show Output</summary>
+
+        \`\`\`
+        $INPUT
+        \`\`\`
+        </details>"
+            fi
+            ;;
+        esac
+
+        # Add comment to PR.
+        PR_PAYLOAD=$(echo '{}' | jq --arg body "$PR_COMMENT" '.body = $body')
+        curl -sS -X POST -H "${AUTH_HEADER}" -H "${ACCEPT_HEADER}" -H "${CONTENT_HEADER}" -d "${PR_PAYLOAD}" -L "${PR_COMMENTS_URL}" > /dev/null
+      shell: bash
+      env:
+        INPUT: ${{ format('{0}{1}', inputs.terraform-stdout, inputs.terraform-stderr) }}

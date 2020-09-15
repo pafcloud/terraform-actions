@@ -1,0 +1,65 @@
+name: Assume AWS role
+description: Assume AWS role and use optional session policy from repository path
+
+inputs:
+  access-key-id:
+    description: AWS access key id
+    required: true
+  secret-access-key:
+    description: AWS secret access key
+    required: true
+  role-to-assume:
+    description: AWS role to assume (arn)
+    required: true
+  role-session-name:
+    description: An identifier for the assumed role session
+    required: false
+    default: gha-terragrunt
+  duration-seconds:
+    description: The duration, in seconds, of the role session
+    required: false
+    default: 900
+  working-directory:
+    description: Working directory
+    required: false
+    default: .
+
+runs:
+  using: composite
+  steps: 
+    - run: |
+        # Search session policy from parent dirs. https://unix.stackexchange.com/a/22215
+        find-up() {
+          path=$(pwd)
+          while [[ "$path" != "" && ! -e "$path/$1" ]]; do
+            path=${path%/*}
+          done
+
+          if [ "$path" != "" ]; then echo "$path/$1"; fi
+        }
+
+        OPT_ARGS=""
+
+        session_policy=$(find-up aws-session-policy.json)
+        if [ "${session_policy}" != "" ]; then
+          OPT_ARGS="${OPT_ARGS} --policy=\"$(< ${session_policy})\""
+        fi
+
+        aws_response=$(aws sts assume-role --role-arn ${{ inputs.role-to-assume }} --role-session-name ${{ inputs.role-session-name }} --duration-seconds ${{ inputs.duration-seconds }} ${OPT_ARGS})
+
+        AWS_ACCESS_KEY_ID=$(echo "${aws_response}" | jq -r '.Credentials.AccessKeyId')
+        AWS_SECRET_ACCESS_KEY=$(echo "${aws_response}" | jq -r '.Credentials.SecretAccessKey')
+        AWS_SESSION_TOKEN=$(echo "${aws_response}" | jq -r '.Credentials.SessionToken')
+
+        echo "::set-env name=AWS_ACCESS_KEY_ID::${AWS_ACCESS_KEY_ID}"
+        echo "::set-env name=AWS_SECRET_ACCESS_KEY::${AWS_SECRET_ACCESS_KEY}"
+        echo "::set-env name=AWS_SESSION_TOKEN::${AWS_SESSION_TOKEN}"
+
+        echo "::add-mask::${AWS_ACCESS_KEY_ID}"
+        echo "::add-mask::${AWS_SECRET_ACCESS_KEY}"
+        echo "::add-mask::${AWS_SESSION_TOKEN}"
+      shell: bash
+      env:
+        AWS_ACCESS_KEY_ID: ${{ inputs.access-key-id }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.secret-access-key }}
+      working-directory: ${{ inputs.working-directory }}

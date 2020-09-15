@@ -1,0 +1,66 @@
+name: Check pull request status
+description: Check pull request status and its mergeability. Optionally notify with comment.
+
+inputs:
+  github-token:
+    description: GitHub auth token
+    required: true
+  pull-request-number:
+    description: Pull request number
+    required: true
+  desired-pull-request-state:
+    description: Pull request state
+    required: false
+    default: open
+  desired-pull-request-mergeable-state:
+    description: Pull request mergeable state
+    required: false
+    default: clean
+  msg:
+    description: Message
+    required: false
+    default: Pull request should be open and mergeable
+  notify:
+    description: Whether notify when desired pr states are not met
+    required: false
+    default: true
+
+outputs:
+  pull-request-state:
+    description: Pull requrest state
+    value: ${{ steps.check.outputs.pull-request-state }}
+  pull-request-mergeable-state:
+    description: Pull request mergeable state
+    value: ${{ steps.check.outputs.pull-request-mergeable-state }}
+  pull-request-head-sha:
+    description: Head SHA
+    value: ${{ steps.check.outputs.pull-request-head-sha }}
+
+runs:
+  using: composite
+  steps:
+    - id: check
+      run: |
+        AUTH_HEADER="Authorization: Bearer ${{ inputs.github-token }}"
+        URL="https://api.github.com/repos/${{ github.repository }}/pulls/${{ inputs.pull-request-number }}"
+
+        out=$(curl -sH "${AUTH_HEADER}" "${URL}")
+        mergeable_state=$(echo ${out} | jq -r .mergeable_state)
+        state=$(echo ${out} | jq -r .state)
+        head_sha=$(echo ${out} | jq -r .head.sha)
+
+        # Notify
+        if [ "${{ inputs.notify }}" == "true" -a \
+             "${state}" != "${{ inputs.desired-pull-request-state }}" -a \
+             "${mergeable_state}" != "${{ inputs.desired-pull-request-mergeable-state }}" ]; then
+          ACCEPT_HEADER="Accept: application/vnd.github.v3+json"
+          CONTENT_HEADER="Content-Type: application/json"
+          PR_COMMENTS_URL="https://api.github.com/repos/${{ github.repository }}/issues/${{ inputs.pull-request-number }}/comments"
+          PAYLOAD=$(echo '{}' | jq --arg body "${{ inputs.msg }}" '.body = $body')
+          curl -sS -X POST -H "${AUTH_HEADER}" -H "${ACCEPT_HEADER}" -H "${CONTENT_HEADER}" -d "${PAYLOAD}" -L "${PR_COMMENTS_URL}" > /dev/null
+        fi
+        
+        echo ::set-output name=pull-request-mergeable-state::${mergeable_state}
+        echo ::set-output name=pull-request-state::${state}
+        echo ::set-output name=pull-request-head-sha::${head_sha}
+      shell: bash
