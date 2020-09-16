@@ -50,9 +50,9 @@ runs:
         head_sha=$(echo ${out} | jq -r .head.sha)
 
         # Notify
-        if [ "${{ inputs.notify }}" == "true" -a \
-             "${state}" != "${{ inputs.desired-pull-request-state }}" -a \
-             "${mergeable_state}" != "${{ inputs.desired-pull-request-mergeable-state }}" ]; then
+        if [[ "${{ inputs.notify }}" == "true" && \
+              (( "${state}" != "${{ inputs.desired-pull-request-state }}" || \
+                 "${mergeable_state}" != "${{ inputs.desired-pull-request-mergeable-state }}" )) ]]; then
           ACCEPT_HEADER="Accept: application/vnd.github.v3+json"
           CONTENT_HEADER="Content-Type: application/json"
           PR_COMMENTS_URL="https://api.github.com/repos/${{ github.repository }}/issues/${{ inputs.pull-request-number }}/comments"
