@@ -15,7 +15,7 @@ outputs:
     value: ${{ steps.changes.outputs.paths }}
   branch:
     description: Branch with the changes
-    value: ${{ steps.branch.outputs.name }}
+    value: ${{ steps.branch.outputs.head-ref }}
 
 runs:
   using: composite
@@ -39,5 +39,5 @@ runs:
       run: |
         AUTH_HEADER="Authorization: Bearer ${{ inputs.github-token }}"
         URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${{ inputs.pull-request-number }}"
-        echo ::set-output name=paths::$(curl -sH "${AUTH_HEADER}" ${URL} | jq -r '.head.ref')
+        echo ::set-output name=head-ref::$(curl -sH "${AUTH_HEADER}" ${URL} | jq -r '.head.ref')
       shell: bash
