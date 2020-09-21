@@ -1,5 +1,5 @@
-name: Find terragrunt config changes
-description: Find paths with changes to 'terragrunt.hcl' files. Omit paths that has no-terragrunt-apply file present.
+name: Finds terragrunt config changes
+description: Finds paths with changes to 'terragrunt.hcl' files. Excludes paths that have a 'no-terragrunt-apply' file present.
 
 inputs:
   github-token:
@@ -11,8 +11,11 @@ inputs:
 
 outputs:
   paths:
-    description: Json list of paths
+    description: JSON array of paths
     value: ${{ steps.changes.outputs.paths }}
+  branch:
+    description: Branch with the changes
+    value: ${{ steps.branch.outputs.head-ref }}
 
 runs:
   using: composite
@@ -31,4 +34,10 @@ runs:
 
         # split to json list
         echo ::set-output name=paths::$(echo -n ${changes} | jq -Rsc 'split(" ")')
+      shell: bash
+    - id: branch
+      run: |
+        AUTH_HEADER="Authorization: Bearer ${{ inputs.github-token }}"
+        URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${{ inputs.pull-request-number }}"
+        echo ::set-output name=head-ref::$(curl -sH "${AUTH_HEADER}" ${URL} | jq -r '.head.ref')
       shell: bash
