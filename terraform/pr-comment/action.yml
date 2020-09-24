@@ -41,14 +41,12 @@ runs:
           plan)
             if [ ${EXIT_CODE} -eq 0 ]; then
               # Plan succeeded
-              # Strip out the refresh section (everything before the 72 '-' characters) and build PR comment.
               CLEAN_PLAN=$(echo "$INPUT" | sed -nr '/-{72}/,/-{72}/{ /-{72}/d; p }') # Strip refresh section
               CLEAN_PLAN=${CLEAN_PLAN::65300} # GitHub has a 65535-char comment limit - truncate plan, leaving space for comment wrapper
-              CLEAN_PLAN=$(echo "$CLEAN_PLAN" | sed -E 's/^([[:blank:]]*)([-+~])/\2\1/g') # Move any diff characters to start of line
               PR_COMMENT="### Terraform \`plan\` (${{ inputs.working-directory }})
         <details><summary>Show Output</summary>
 
-        \`\`\`diff
+        \`\`\`terraform
         $CLEAN_PLAN
         \`\`\`
         </details>"
