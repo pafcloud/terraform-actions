@@ -22,7 +22,7 @@ runs:
         URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${{ inputs.pull-request-number }}/files"
         AUTH_HEADER="Authorization: Bearer ${{ inputs.github-token }}"
 
-        changes=$(for d in $(curl -sH "${AUTH_HEADER}" ${URL} | jq -r '.[] | select(.status != "deleted") | .filename' | grep terragrunt.hcl$ | sed 's/terragrunt.hcl//'); do
+        changes=$(for d in $(curl -sH "${AUTH_HEADER}" ${URL} | jq -r '.[] | select(.status != "removed") | .filename' | grep terragrunt.hcl$ | sed 's/terragrunt.hcl//'); do
           # skip paths where no-terragrunt-apply exists
           if [ \! -f $d/no-terragrunt-apply ]; then
             echo $d
