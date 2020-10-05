@@ -19,7 +19,7 @@ runs:
   steps: 
     - id: changes
       run: |
-        URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${{ inputs.pull-request-number }}/files"
+        URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${{ inputs.pull-request-number }}/files?per_page=100"
         AUTH_HEADER="Authorization: Bearer ${{ inputs.github-token }}"
 
         changes=$(for d in $(curl -sH "${AUTH_HEADER}" ${URL} | jq -r '.[] | select(.status != "removed") | .filename' | grep terragrunt.hcl$ | sed 's/terragrunt.hcl//'); do
