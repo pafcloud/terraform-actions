@@ -18,7 +18,7 @@ inputs:
   duration-seconds:
     description: The duration, in seconds, of the role session
     required: false
-    default: 900
+    default: 1800
   working-directory:
     description: Working directory
     required: false
