@@ -12,8 +12,7 @@ runs:
     - id: setup
       shell: bash
       run: |
-        temp_bin_dir="$RUNNER_TEMP/$(uuidgen)"
-        mkdir $temp_bin_dir
+        temp_bin_dir="$(mktemp -d $RUNNER_TEMP/XXXXXXXXXXXXXXXX)"
         url="https://github.com/gruntwork-io/terragrunt/releases/download/v${{ inputs.version }}/terragrunt_linux_amd64"
         curl -fsSL $url -o $temp_bin_dir/terragrunt
         chmod +x $temp_bin_dir/terragrunt
