@@ -13,7 +13,7 @@ runs:
       shell: bash
       run: |
         echo "PATH: $PATH"
-        echo "RUNNER_TEMP: $RUNNER_TEMP"
+        echo "RUNNER_TOOL_CACHE: $RUNNER_TOOL_CACHE"
         exit 1
         #url="https://github.com/gruntwork-io/terragrunt/releases/download/v${{ inputs.version }}/terragrunt_linux_amd64"
         #curl -fsSL $url -o ~/.local/bin/terragrunt
