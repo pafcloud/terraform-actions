@@ -12,8 +12,11 @@ runs:
     - id: setup
       shell: bash
       run: |
-        temp_bin_dir="$(mktemp -d $RUNNER_TEMP/XXXXXXXXXXXXXXXX)"
-        url="https://github.com/gruntwork-io/terragrunt/releases/download/v${{ inputs.version }}/terragrunt_linux_amd64"
-        curl -fsSL $url -o $temp_bin_dir/terragrunt
-        chmod +x $temp_bin_dir/terragrunt
-        echo "$temp_bin_dir" >> $GITHUB_PATH
+        download_url="https://github.com/gruntwork-io/terragrunt/releases/download/v${{ inputs.version }}/terragrunt_linux_amd64"
+        tmp_bin_dir="$(mktemp -d $RUNNER_TEMP/XXXXXXXXXX)"
+        terragrunt_bin="$tmp_bin_dir/terragrunt"
+
+        curl -fsSL "$download_url" -o "$terragrunt_bin"
+        chmod +x "terragrunt_bin"
+
+        echo "$tmp_bin_dir" >> $GITHUB_PATH
