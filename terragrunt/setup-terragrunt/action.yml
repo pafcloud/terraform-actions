@@ -13,8 +13,7 @@ runs:
       shell: bash
       run: |
         echo "PATH: $PATH"
-        echo "HOME: $HOME"
-        echo "WORKSPACE: $GITHUB_WORKSPACE"
+        echo "RUNNER_TEMP: $RUNNER_TEMP"
         exit 1
         #url="https://github.com/gruntwork-io/terragrunt/releases/download/v${{ inputs.version }}/terragrunt_linux_amd64"
         #curl -fsSL $url -o ~/.local/bin/terragrunt
