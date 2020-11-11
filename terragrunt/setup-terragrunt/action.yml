@@ -12,9 +12,9 @@ runs:
     - id: setup
       shell: bash
       run: |
-        echo "PATH: $PATH"
-        echo "RUNNER_TOOL_CACHE: $RUNNER_TOOL_CACHE"
-        exit 1
-        #url="https://github.com/gruntwork-io/terragrunt/releases/download/v${{ inputs.version }}/terragrunt_linux_amd64"
-        #curl -fsSL $url -o ~/.local/bin/terragrunt
-        #chmod +x ~/.local/bin/terragrunt
+        temp_bin_dir="$RUNNER_TEMP/$(uuidgen)"
+        mkdir $temp_bin_dir
+        url="https://github.com/gruntwork-io/terragrunt/releases/download/v${{ inputs.version }}/terragrunt_linux_amd64"
+        curl -fsSL $url -o $temp_bin_dir/terragrunt
+        chmod +x $temp_bin_dir/terragrunt
+        echo "$temp_bin_dir" >> $GITHUB_PATH
