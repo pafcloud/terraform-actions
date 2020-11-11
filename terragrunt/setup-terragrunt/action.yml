@@ -12,6 +12,7 @@ runs:
     - id: setup
       shell: bash
       run: |
+        echo $PATH
         url="https://github.com/gruntwork-io/terragrunt/releases/download/v${{ inputs.version }}/terragrunt_linux_amd64"
         curl -fsSL $url -o ~/.local/bin/terragrunt
         chmod +x ~/.local/bin/terragrunt
