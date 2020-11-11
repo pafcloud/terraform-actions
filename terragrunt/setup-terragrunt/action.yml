@@ -13,5 +13,5 @@ runs:
       shell: bash
       run: |
         url="https://github.com/gruntwork-io/terragrunt/releases/download/v${{ inputs.version }}/terragrunt_linux_amd64"
-        curl -LsS $url -o /usr/local/bin/terragrunt
+        curl -fsSL $url -o /usr/local/bin/terragrunt
         chmod +x /usr/local/bin/terragrunt
