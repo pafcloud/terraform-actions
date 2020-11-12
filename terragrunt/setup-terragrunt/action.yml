@@ -8,7 +8,7 @@ inputs:
     required: true
   checksum:
     description: Expected sha256 checksum for the terragrunt binary
-    default: 0c7794dbff782221e5cb120ef78c5d8240dc09ff317c64a8992b5622ebe08f48
+    default: '0c7794dbff782221e5cb120ef78c5d8240dc09ff317c64a8992b5622ebe08f48'
     required: true
 
 runs:
