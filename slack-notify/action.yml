@@ -3,7 +3,7 @@ description: Sends a slack notification
 
 inputs:
   text:
-    description: Message text
+    description: Message text (free-form string)
     required: true
 
 runs:
