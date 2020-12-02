@@ -2,13 +2,13 @@ name: slack-notify
 description: Sends a slack notification
 
 inputs:
-  message:
-    description: Slack message
+  text:
+    description: Message text
     required: true
 
 runs:
   using: composite
   steps:
     - run: |
-        echo curl -X POST -H 'Content-Type: application/json' --data '{"text":${{ toJSON(inputs.message) }}}' $SLACK_WEBHOOK_URL
+        echo curl -X POST -H 'Content-Type: application/json' --data '{"text":${{ toJSON(inputs.text) }}}' "$SLACK_WEBHOOK_URL"
       shell: bash
