@@ -9,5 +9,4 @@ inputs:
 runs:
   using: composite
   steps:
-    - run: echo curl -X POST -H 'Content-type: application/json' --data '${{ toJSON({text: inputs.message}) }}' $SLACK_WEBHOOK_URL
-      shell: bash
+    - run: echo curl -X POST -H 'Content-type: application/json' --data '${{ toJSON({"text": inputs.message}) }}' $SLACK_WEBHOOK_URL
