@@ -1,9 +1,9 @@
 name: slack-notify
-description: Sends a slack notification
+description: Sends a slack message via webhook
 
 inputs:
   text:
-    description: Message text (free-form string)
+    description: Message text (free-form 'mrkdwn' string, see https://api.slack.com/reference/surfaces/formatting#basics)
     required: true
 
 runs:
