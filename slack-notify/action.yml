@@ -3,16 +3,12 @@ description: Sends a slack message via webhook
 
 inputs:
   text:
-    description: Message text (free-form string)
-    required: true
-  format:
-    description: Message format (plain_text or mrkdwn)
-    default: plain_text
+    description: Message text (free-form 'mrkdwn' string, see https://api.slack.com/reference/surfaces/formatting#basics)
     required: true
 
 runs:
   using: composite
   steps:
     - run: |
-        curl -X POST -H 'Content-Type: application/json' --data '{"type":${{ toJSON(inputs.format) }},"text":${{ toJSON(inputs.text) }}}' "$SLACK_WEBHOOK_URL"
+        curl -X POST -H 'Content-Type: application/json' --data '{"text":${{ toJSON(inputs.text) }}}' "$SLACK_WEBHOOK_URL"
       shell: bash
