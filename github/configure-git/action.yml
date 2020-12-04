@@ -7,7 +7,7 @@ inputs:
     default: GitHub Actions
     required: true
   user_email:
-    description: User email address
+    description: User email
     default: actions@users.noreply.github.com
     required: true
 
