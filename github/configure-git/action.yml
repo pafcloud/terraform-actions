@@ -20,5 +20,5 @@ runs:
     - run: |
         git config user.name "${{ inputs.user_name }}"
         git config user.email "${{ inputs.user_email }}"
-        echo "GITHUB_TOKEN=${{ inputs.github_token}}" >> $GITHUB_ENV
+        echo "GITHUB_TOKEN=${{ inputs.github_token }}" >> $GITHUB_ENV
       shell: bash
