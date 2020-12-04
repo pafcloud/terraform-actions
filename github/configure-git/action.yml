@@ -1,5 +1,5 @@
 name: configure-git
-description: Configures Git CLI
+description: Configures Git and gh CLIs
 
 inputs:
   user_name:
