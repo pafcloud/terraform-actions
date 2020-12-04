@@ -14,5 +14,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - run: git config user.name "${{ inputs.user_name }}"
-    - run: git config user.email "${{ inputs.user_email }}"
+    - run: |
+        git config user.name "${{ inputs.user_name }}"
+        git config user.email "${{ inputs.user_email }}"
+      shell: bash
