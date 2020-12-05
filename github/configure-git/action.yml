@@ -3,12 +3,10 @@ description: Configures Git and gh CLIs
 
 inputs:
   user_name:
-    description: User name
-    default: GitHub Actions
+    description: Git user.name
     required: true
   user_email:
-    description: User email
-    default: actions@users.noreply.github.com
+    description: Git user.email
     required: true
   github_token:
     description: GitHub auth token
@@ -20,5 +18,7 @@ runs:
     - run: |
         git config user.name "${{ inputs.user_name }}"
         git config user.email "${{ inputs.user_email }}"
-        echo "GITHUB_TOKEN=${{ inputs.github_token }}" >> $GITHUB_ENV
+        echo "GITHUB_TOKEN=$GITHUB_TOKEN" >> $GITHUB_ENV
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
       shell: bash
