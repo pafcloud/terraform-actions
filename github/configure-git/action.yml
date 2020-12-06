@@ -22,17 +22,20 @@ runs:
   using: composite
   steps:
     - run: |
-        git config user.name "${{ inputs.user_name }}"
-        git config user.email "${{ inputs.user_email }}"
-        
+        git config user.name "$USER_NAME"
+        git config user.email "$USER_EMAIL"
+
         echo -n "$GPG_KEY_PEM" | gpg --batch --import
-        echo -e "5\ny\n" | gpg --command-fd 0 --edit-key ${{ inputs.gpg_key_id }} trust
+        echo -e "5\ny\n" | gpg --command-fd 0 --edit-key "$GPG_KEY_ID" trust
 
         git config commit.gpgsign true
-        git config user.signingkey "${{ inputs.gpg_key_id }}"
-        
+        git config user.signingkey "$GPG_KEY_ID"
+
         echo "GITHUB_TOKEN=$GITHUB_TOKEN" >> $GITHUB_ENV
       env:
+        USER_NAME: ${{ inputs.user_name }}
+        USER_EMAIL: ${{ inputs.user_email }}
+        GPG_KEY_ID: ${{ inputs.gpg_key_id }}
         GPG_KEY_PEM: ${{ inputs.gpg_key_pem }}
         GITHUB_TOKEN: ${{ inputs.github_token }}
       shell: bash
