@@ -1,5 +1,5 @@
 name: configure-git
-description: Configures Git and gh CLIs
+description: Configures git and gh
 
 inputs:
   user_name:
@@ -7,6 +7,12 @@ inputs:
     required: true
   user_email:
     description: Git user.email
+    required: true
+  gpg_key_id:
+    description: Git user.signingKey
+    required: true
+  gpg_key_pem:
+    description: GPG private key (PEM)
     required: true
   github_token:
     description: GitHub auth token
@@ -18,7 +24,15 @@ runs:
     - run: |
         git config user.name "${{ inputs.user_name }}"
         git config user.email "${{ inputs.user_email }}"
+        
+        echo -n "$GPG_KEY_PEM" | gpg --batch --import
+        echo -e "5\ny\n" | gpg --command-fd 0 --edit-key ${{ inputs.gpg_key_id }} trust
+
+        git config commit.gpgsign true
+        git config user.signingkey "${{ inputs.gpg_key_id }}"
+        
         echo "GITHUB_TOKEN=$GITHUB_TOKEN" >> $GITHUB_ENV
       env:
+        GPG_KEY_PEM: ${{ inputs.gpg_key_pem }}
         GITHUB_TOKEN: ${{ inputs.github_token }}
       shell: bash
