@@ -54,7 +54,9 @@ runs:
         fi
         
         # Setup gh auth
-        test ! -z "$GITHUB_TOKEN" && echo "GITHUB_TOKEN=$GITHUB_TOKEN" >> $GITHUB_ENV
+        if [ ! -z "$GITHUB_TOKEN" ]; then
+          echo "GITHUB_TOKEN=$GITHUB_TOKEN" >> $GITHUB_ENV
+        fi
       env:
         USER_NAME: ${{ inputs.user_name }}
         USER_EMAIL: ${{ inputs.user_email }}
