@@ -37,8 +37,8 @@ runs:
         if [ ! -z "$GPG_KEY_ID" -a ! -z "$GPG_KEY_PEM" ]; then
           echo -n "$GPG_KEY_PEM" | gpg --batch --import
           echo -e "5\ny\n" | gpg --command-fd 0 --edit-key "$GPG_KEY_ID" trust
-          git config commit.gpgsign true
-          git config user.signingkey "$GPG_KEY_ID"
+          git config --global commit.gpgsign true
+          git config --global user.signingkey "$GPG_KEY_ID"
         fi
         
         if [ ! -z "$SSH_KEY_PEM" ]; then
