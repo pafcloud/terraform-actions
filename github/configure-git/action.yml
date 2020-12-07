@@ -2,22 +2,22 @@ name: configure-git
 description: Configures git and gh
 
 inputs:
-  user_name:
+  user-name:
     description: Git user.name
     default: ''
-  user_email:
+  user-email:
     description: Git user.email
     default: ''
-  gpg_key_id:
+  gpg-key-id:
     description: Git user.signingKey
     default: ''
-  gpg_key_pem:
+  gpg-key-pem:
     description: GPG private key (PEM)
     default: ''
-  ssh_key_pem:
+  ssh-key-pem:
     description: SSH private key (PEM)
     default: ''
-  github_token:
+  github-token:
     description: GitHub auth token
     default: ''
 
@@ -58,10 +58,10 @@ runs:
           echo "GITHUB_TOKEN=$GITHUB_TOKEN" >> $GITHUB_ENV
         fi
       env:
-        USER_NAME: ${{ inputs.user_name }}
-        USER_EMAIL: ${{ inputs.user_email }}
-        GPG_KEY_ID: ${{ inputs.gpg_key_id }}
-        GPG_KEY_PEM: ${{ inputs.gpg_key_pem }}
-        SSH_KEY_PEM: ${{ inputs.ssh_key_pem }}
-        GITHUB_TOKEN: ${{ inputs.github_token }}
+        USER_NAME: ${{ inputs.user-name }}
+        USER_EMAIL: ${{ inputs.user-email }}
+        GPG_KEY_ID: ${{ inputs.gpg-key-id }}
+        GPG_KEY_PEM: ${{ inputs.gpg-key-pem }}
+        SSH_KEY_PEM: ${{ inputs.ssh-key-pem }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
       shell: bash
