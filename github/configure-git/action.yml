@@ -33,8 +33,8 @@ runs:
 
         if [ ! -z "$GPG_KEY_ID" -a ! -z "$GPG_KEY_PEM" ]; then
           echo "Configuring GPG signing key"
-          echo -n "$GPG_KEY_PEM" | gpg --batch --quiet --import
-          echo -e "5\ny\n" | gpg --batch --quiet --command-fd 0 --edit-key "$GPG_KEY_ID" trust
+          echo -n "$GPG_KEY_PEM" | gpg --batch --quiet --no-tty --import
+          echo -e "5\ny\n" | gpg --batch --quiet --no-tty --command-fd 0 --edit-key "$GPG_KEY_ID" trust
           gpg --list-keys
           git config --global commit.gpgsign true
           git config --global user.signingkey "$GPG_KEY_ID"
