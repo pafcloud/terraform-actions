@@ -4,38 +4,55 @@ description: Configures git and gh
 inputs:
   user_name:
     description: Git user.name
-    required: true
+    default: ''
   user_email:
     description: Git user.email
-    required: true
+    default: ''
   gpg_key_id:
     description: Git user.signingKey
-    required: true
+    default: ''
   gpg_key_pem:
     description: GPG private key (PEM)
-    required: true
+    default: ''
+  ssh_key_pem:
+    description: SSH private key (PEM)
+    default: ''
   github_token:
     description: GitHub auth token
-    required: true
+    default: ''
 
 runs:
   using: composite
   steps:
     - run: |
-        git config user.name "$USER_NAME"
-        git config user.email "$USER_EMAIL"
 
-        echo -n "$GPG_KEY_PEM" | gpg --batch --import
-        echo -e "5\ny\n" | gpg --command-fd 0 --edit-key "$GPG_KEY_ID" trust
+        if [ -z "$USER_NAME$USER_EMAIL$GPG_KEY_ID$GPG_KEY_PEM$SSH_KEY_PEM$GITHUB_TOKEN" ]; then
+          echo "ERROR: No git configuration set"
+          exit 1
+        fi
 
-        git config commit.gpgsign true
-        git config user.signingkey "$GPG_KEY_ID"
+        test ! -z "$USER_NAME" && git config --global user.name "$USER_NAME"
+        test ! -z "$USER_EMAIL" && git config --global user.email "$USER_EMAIL"
 
-        echo "GITHUB_TOKEN=$GITHUB_TOKEN" >> $GITHUB_ENV
+        if [ ! -z "$GPG_KEY_ID" -a ! -z "$GPG_KEY_PEM" ]; then
+          echo -n "$GPG_KEY_PEM" | gpg --batch --import
+          echo -e "5\ny\n" | gpg --command-fd 0 --edit-key "$GPG_KEY_ID" trust
+          git config commit.gpgsign true
+          git config user.signingkey "$GPG_KEY_ID"
+        fi
+        
+        if [ ! -z "$SSH_KEY_PEM" ]; then
+          mkdir -m 0700 ~/.ssh
+          echo "$SSH_KEY_PEM" > ~/.ssh/id_rsa
+          chmod 0600 ~/.ssh/id_rsa
+        fi
+
+        test ! -z "$GITHUB_TOKEN" && echo "GITHUB_TOKEN=$GITHUB_TOKEN" >> $GITHUB_ENV
       env:
         USER_NAME: ${{ inputs.user_name }}
         USER_EMAIL: ${{ inputs.user_email }}
         GPG_KEY_ID: ${{ inputs.gpg_key_id }}
         GPG_KEY_PEM: ${{ inputs.gpg_key_pem }}
+        SSH_KEY_PEM: ${{ inputs.ssh_key_pem }}
         GITHUB_TOKEN: ${{ inputs.github_token }}
       shell: bash
