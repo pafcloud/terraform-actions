@@ -4,22 +4,16 @@ description: Configures git and gh
 inputs:
   user-name:
     description: Git user.name
-    default: ''
   user-email:
     description: Git user.email
-    default: ''
   gpg-key-id:
     description: Git user.signingKey
-    default: ''
   gpg-key-pem:
     description: GPG private key (PEM)
-    default: ''
   ssh-key-pem:
     description: SSH private key (PEM)
-    default: ''
   github-token:
     description: GitHub auth token
-    default: ''
 
 runs:
   using: composite
