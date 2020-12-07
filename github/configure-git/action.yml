@@ -32,7 +32,7 @@ runs:
           git config --global user.email "$USER_EMAIL"
         fi
 
-        # Setup GPG key
+        # Setup GPG signing key
         if [ ! -z "$GPG_KEY_ID" -a ! -z "$GPG_KEY_PEM" ]; then
           echo -n "$GPG_KEY_PEM" | gpg --batch --import
           echo -e "5\ny\n" | gpg --command-fd 0 --edit-key "$GPG_KEY_ID" trust
@@ -40,7 +40,7 @@ runs:
           git config --global user.signingkey "$GPG_KEY_ID"
         fi
         
-        # Setup SSH key
+        # Setup SSH private key
         if [ ! -z "$SSH_KEY_PEM" ]; then
           mkdir -m 0700 ~/.ssh
           echo "$SSH_KEY_PEM" > ~/.ssh/id_rsa
