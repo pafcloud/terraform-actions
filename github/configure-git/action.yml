@@ -26,14 +26,19 @@ runs:
   steps:
     - run: |
 
+        # Fail fast if no config set
         if [ -z "$USER_NAME$USER_EMAIL$GPG_KEY_ID$GPG_KEY_PEM$SSH_KEY_PEM$GITHUB_TOKEN" ]; then
           echo "ERROR: No git configuration set"
           exit 1
         fi
 
-        test ! -z "$USER_NAME" && git config --global user.name "$USER_NAME"
-        test ! -z "$USER_EMAIL" && git config --global user.email "$USER_EMAIL"
+        # Set user identity
+        if [ ! -z "$USER_NAME" -a ! -z "$USER_EMAIL" ]; then
+          git config --global user.name "$USER_NAME"
+          git config --global user.email "$USER_EMAIL"
+        fi
 
+        # Setup GPG key
         if [ ! -z "$GPG_KEY_ID" -a ! -z "$GPG_KEY_PEM" ]; then
           echo -n "$GPG_KEY_PEM" | gpg --batch --import
           echo -e "5\ny\n" | gpg --command-fd 0 --edit-key "$GPG_KEY_ID" trust
@@ -41,12 +46,14 @@ runs:
           git config --global user.signingkey "$GPG_KEY_ID"
         fi
         
+        # Setup SSH key
         if [ ! -z "$SSH_KEY_PEM" ]; then
           mkdir -m 0700 ~/.ssh
           echo "$SSH_KEY_PEM" > ~/.ssh/id_rsa
           chmod 0600 ~/.ssh/id_rsa
         fi
-
+        
+        # Setup gh auth
         test ! -z "$GITHUB_TOKEN" && echo "GITHUB_TOKEN=$GITHUB_TOKEN" >> $GITHUB_ENV
       env:
         USER_NAME: ${{ inputs.user_name }}
