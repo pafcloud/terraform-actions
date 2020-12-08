@@ -1,0 +1,60 @@
+name: configure-git
+description: Configures git and gh
+
+inputs:
+  user-name:
+    description: Git user.name
+  user-email:
+    description: Git user.email
+  gpg-key-id:
+    description: Git user.signingkey
+  gpg-key-pem:
+    description: GPG private key (PEM)
+  ssh-key-pem:
+    description: SSH private key (PEM)
+  github-token:
+    description: GitHub auth token
+
+runs:
+  using: composite
+  steps:
+    - run: |
+
+        if [ -z "$USER_NAME$USER_EMAIL$GPG_KEY_ID$GPG_KEY_PEM$SSH_KEY_PEM$GITHUB_TOKEN" ]; then
+          echo "ERROR: No git configuration set"
+          exit 1
+        fi
+
+        if [ ! -z "$USER_NAME" -a ! -z "$USER_EMAIL" ]; then
+          echo "Configuring user identity"
+          git config --global user.name "$USER_NAME"
+          git config --global user.email "$USER_EMAIL"
+        fi
+
+        if [ ! -z "$GPG_KEY_ID" -a ! -z "$GPG_KEY_PEM" ]; then
+          echo "Configuring GPG signing key"
+          echo -n "$GPG_KEY_PEM" | gpg --batch --quiet --no-tty --import
+          echo -e "5\ny\n" | gpg --batch --quiet --no-tty --command-fd 0 --edit-key "$GPG_KEY_ID" trust
+          git config --global commit.gpgsign true
+          git config --global user.signingkey "$GPG_KEY_ID"
+        fi
+
+        if [ ! -z "$SSH_KEY_PEM" ]; then
+          echo "Configuring SSH private key"
+          mkdir -m 0700 ~/.ssh
+          echo "$SSH_KEY_PEM" > ~/.ssh/id_rsa
+          chmod 0600 ~/.ssh/id_rsa
+        fi
+        
+        if [ ! -z "$GITHUB_TOKEN" ]; then
+          echo "Configuring GitHub auth token"
+          echo "GITHUB_TOKEN=$GITHUB_TOKEN" >> $GITHUB_ENV
+        fi
+      env:
+        USER_NAME: ${{ inputs.user-name }}
+        USER_EMAIL: ${{ inputs.user-email }}
+        GPG_KEY_ID: ${{ inputs.gpg-key-id }}
+        GPG_KEY_PEM: ${{ inputs.gpg-key-pem }}
+        SSH_KEY_PEM: ${{ inputs.ssh-key-pem }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+      shell: bash
