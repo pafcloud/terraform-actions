@@ -4,11 +4,11 @@ description: Installs gruntworks' terragrunt (linux x64), see https://github.com
 inputs:
   version:
     description: Terragrunt version, e.g. 0.26.2
-    default: '0.23.20'
+    default: '0.24.4'
     required: true
   checksum:
     description: Expected sha256 checksum for the terragrunt binary
-    default: '0c7794dbff782221e5cb120ef78c5d8240dc09ff317c64a8992b5622ebe08f48'
+    default: 'f65a22becc185af5291870b04653939cab0cee86beda97fd774feb6dc822b416'
     required: true
 
 runs:
