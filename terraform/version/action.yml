@@ -1,0 +1,29 @@
+name: Select terraform version to use
+description: Like tfenv - check path for .terraform-version file and use vesion specified there. Otherwise return default version.
+
+inputs:
+  working-directory:
+    description: Path within repository
+    required: true
+
+outputs:
+  version:
+    description: Terraform version to use
+    value: ${{ steps.main.outputs.version }}
+  checksum:
+    description: Terraform binary sha256 checksum
+    value: ${{ steps.main.outputs.checksum }}
+
+runs:
+  using: composite
+  steps: 
+    - id: main
+      run: |
+        version="0.12.29"
+        if [ -f .terraform-version ]; then
+          version=$(cat .terraform-version)
+        fi
+
+        echo ::set-output name=version::${version}
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
