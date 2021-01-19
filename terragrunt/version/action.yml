@@ -29,7 +29,14 @@ runs:
           version=$(cat .terragrunt-version)
         fi
 
+        checksum=${checksums[$version]}
+        if [ "${checksum}" == "" ]; then
+          echo "Checksum is missing for version ${version}. Check version or update this composite run step action to include new checksum."
+          echo "Exiting."
+          exit 1
+        fi
+
         echo ::set-output name=version::${version}
-        echo ::set-output name=checksum::${checksums[$version]}
+        echo ::set-output name=checksum::${checksum}
       shell: bash
       working-directory: ${{ inputs.working-directory }}
