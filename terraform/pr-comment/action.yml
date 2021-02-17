@@ -50,7 +50,7 @@ runs:
         $CLEAN_PLAN
         \`\`\`
         </details>
-        Ask a code owner to approve this PR and then comment \`/apply\` to apply the changes"
+        Ask a code owner to approve this PR, and then comment \`/apply\` to run terraform apply"
             else
               PR_COMMENT="### Terraform \`plan\` Failed (${{ inputs.working-directory }})
         <details open><summary>Show Output</summary>
@@ -59,7 +59,7 @@ runs:
         $INPUT
         \`\`\`
         </details>
-        Fix \`terragrunt.hcl\` inputs/module (terraform plan will be automatically re-run)"
+        Please fix \`terragrunt.hcl\` inputs/module (terraform plan will be automatically re-run)"
             fi
             ;;
 
@@ -72,7 +72,7 @@ runs:
         $INPUT
         \`\`\`
         </details>
-        You should now merge this PR to keep Git master and actual resource state in sync"
+        Please merge this PR to keep Git master and terraform-managed resource state in sync"
             else
               PR_COMMENT="### Terraform \`apply\` Failed (${{ inputs.working-directory }})
         <details open><summary>Show Output</summary>
