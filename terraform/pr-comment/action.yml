@@ -58,8 +58,8 @@ runs:
         \`\`\`
         $INPUT
         \`\`\`
-        </details>
-        Fix \`terragrunt.hcl\` inputs/module (terraform plan will be automatically re-run)"
+        </details>\
+        Fix `terragrunt.hcl` inputs/module (terraform plan will be automatically re-run)"
             fi
             ;;
 
