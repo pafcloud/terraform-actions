@@ -44,48 +44,48 @@ runs:
               CLEAN_PLAN=$(echo "$INPUT" | sed -nr '/-{72}/,/-{72}/{ /-{72}/d; p }') # Strip refresh section
               CLEAN_PLAN=${CLEAN_PLAN::65300} # GitHub has a 65535-char comment limit - truncate plan, leaving space for comment wrapper
               PR_COMMENT="### Terraform \`plan\` (${{ inputs.working-directory }})
-        <details><summary>Show Output</summary>
+        <details><summary>Show output</summary>
 
         \`\`\`terraform
         $CLEAN_PLAN
         \`\`\`
         </details>
         
-        Ask a code owner to approve this PR, and then comment <code>/apply</code> to run terraform apply"
+        Please review the plan above, ask a code owner to approve this pull request, and then comment <code>/apply</code> to run terraform apply"
             else
-              PR_COMMENT="### Terraform \`plan\` Failed (${{ inputs.working-directory }})
-        <details open><summary>Show Output</summary>
+              PR_COMMENT="### Terraform \`plan\` failed (${{ inputs.working-directory }})
+        <details open><summary>Show output</summary>
 
         \`\`\`
         $INPUT
         \`\`\`
         </details>
         
-        Fix <code>terragrunt.hcl</code> inputs/module (terraform plan will be automatically re-run)"
+        Please fix <code>terragrunt.hcl</code> inputs/module (terraform plan will be automatically re-run)"
             fi
             ;;
 
           apply)
             if [ $EXIT_CODE -eq 0 ]; then
               PR_COMMENT="### Terraform \`apply\` (${{ inputs.working-directory }})
-        <details><summary>Show Output</summary>
+        <details><summary>Show output</summary>
 
         \`\`\`
         $INPUT
         \`\`\`
         </details>
         
-        Merge this PR to keep Git master and terraform-managed resource state in sync"
+        Please merge this pull request to keep Git base branch and terraform-managed resource state in sync"
             else
-              PR_COMMENT="### Terraform \`apply\` Failed (${{ inputs.working-directory }})
-        <details open><summary>Show Output</summary>
+              PR_COMMENT="### Terraform \`apply\` failed (${{ inputs.working-directory }})
+        <details open><summary>Show output</summary>
 
         \`\`\`
         $INPUT
         \`\`\`
         </details>
         
-        Fix <code>terragrunt.hcl</code> inputs/module, and then comment <code>/apply</code> to run terraform apply again"
+        Please fix <code>terragrunt.hcl</code> inputs/module, and then comment <code>/apply</code> to run terraform apply again"
             fi
             ;;
         esac
