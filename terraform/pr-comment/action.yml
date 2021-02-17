@@ -59,7 +59,7 @@ runs:
         $INPUT
         \`\`\`
         </details>
-        Please fix \`terragrunt.hcl\` inputs/module (terraform plan will be automatically re-run)"
+        Fix \`terragrunt.hcl\` inputs/module (terraform plan will be automatically re-run)"
             fi
             ;;
 
@@ -72,7 +72,7 @@ runs:
         $INPUT
         \`\`\`
         </details>
-        Please merge this PR to keep Git master and terraform-managed resource state in sync"
+        Merge this PR to keep Git master and terraform-managed resource state in sync"
             else
               PR_COMMENT="### Terraform \`apply\` Failed (${{ inputs.working-directory }})
         <details open><summary>Show Output</summary>
