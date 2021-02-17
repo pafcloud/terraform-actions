@@ -59,7 +59,7 @@ runs:
         $INPUT
         \`\`\`
         </details>
-        Fix \`terragrunt.hcl\` inputs/module (plan will be automatically re-run)"
+        Fix \`terragrunt.hcl\` inputs/module (terraform plan will be automatically re-run)"
             fi
             ;;
 
@@ -72,7 +72,7 @@ runs:
         $INPUT
         \`\`\`
         </details>
-        You can now merge this PR"
+        You should now merge this PR to keep Git master and actual resource state in sync"
             else
               PR_COMMENT="### Terraform \`apply\` Failed (${{ inputs.working-directory }})
         <details open><summary>Show Output</summary>
@@ -81,7 +81,7 @@ runs:
         $INPUT
         \`\`\`
         </details>
-        Fix \`terragrunt.hcl\` inputs/module, and comment \`/apply\` to run the apply again"
+        Fix \`terragrunt.hcl\` inputs/module, and comment \`/apply\` to run terraform apply again"
             fi
             ;;
         esac
