@@ -51,7 +51,7 @@ runs:
         \`\`\`
         </details>
         
-        Ask a code owner to approve this PR, and then comment \`/apply\` to run terraform apply"
+        Ask a code owner to approve this PR, and then comment <code>/apply</code> to run terraform apply"
             else
               PR_COMMENT="### Terraform \`plan\` Failed (${{ inputs.working-directory }})
         <details open><summary>Show Output</summary>
@@ -61,7 +61,7 @@ runs:
         \`\`\`
         </details>
         
-        **Fix <code>terragrunt.hcl</code> inputs/module (terraform plan will be automatically re-run)**"
+        Fix <code>terragrunt.hcl</code> inputs/module (terraform plan will be automatically re-run)"
             fi
             ;;
 
@@ -74,6 +74,7 @@ runs:
         $INPUT
         \`\`\`
         </details>
+        
         Merge this PR to keep Git master and terraform-managed resource state in sync"
             else
               PR_COMMENT="### Terraform \`apply\` Failed (${{ inputs.working-directory }})
@@ -83,7 +84,8 @@ runs:
         $INPUT
         \`\`\`
         </details>
-        Fix \`terragrunt.hcl\` inputs/module, and comment \`/apply\` to run terraform apply again"
+        
+        Fix <code>terragrunt.hcl</code> inputs/module, and then comment <code>/apply</code> to run terraform apply again"
             fi
             ;;
         esac
