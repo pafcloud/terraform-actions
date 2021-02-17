@@ -50,6 +50,7 @@ runs:
         $CLEAN_PLAN
         \`\`\`
         </details>
+        
         Ask a code owner to approve this PR, and then comment \`/apply\` to run terraform apply"
             else
               PR_COMMENT="### Terraform \`plan\` Failed (${{ inputs.working-directory }})
@@ -60,7 +61,7 @@ runs:
         \`\`\`
         </details>
         
-        **Please fix terragrunt.hcl inputs/module (terraform plan will be automatically re-run)**"
+        **Fix <code>terragrunt.hcl</code> inputs/module (terraform plan will be automatically re-run)**"
             fi
             ;;
 
