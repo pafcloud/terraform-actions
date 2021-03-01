@@ -127,3 +127,4 @@ runs:
         INPUT: ${{ format('{0}{1}', inputs.terraform-stdout, inputs.terraform-stderr) }}
         EXIT_CODE: ${{ inputs.terraform-exit-code }}
         PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
