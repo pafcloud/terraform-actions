@@ -41,7 +41,7 @@ runs:
         details() {
           local fmt=""
           if [ "$1" != "-" ]; then
-            fmt = "$1"
+            fmt="$1"
           fi
 
           local open=""
