@@ -40,7 +40,7 @@ runs:
 
         details() {
           local fmt=""
-          if [ "$1" != "-"]; then
+          if [ "$1" != "-" ]; then
             fmt = "$1"
           fi
 
