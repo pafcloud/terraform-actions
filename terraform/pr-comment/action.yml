@@ -39,11 +39,7 @@ runs:
         }
 
         details() {
-          local fmt=""
-          if [ "$1" != "-" ]; then
-            fmt="$1"
-          fi
-
+          local fmt="$1"
           local open=""
           if [ "$2" == "open" ]; then
             open=" open";
@@ -75,7 +71,7 @@ runs:
           shift
 
           echo "### Terraform \`plan\` failed ($p)"
-          details - open "$@"
+          details text open "$@"
           echo
           echo "Please fix <code>terragrunt.hcl</code> inputs/module (terraform plan will be automatically re-run)"
         }
@@ -85,7 +81,7 @@ runs:
           shift
 
           echo "### Terraform \`apply\` ($p)"
-          details - closed "$@"
+          details text closed "$@"
           echo
           echo "Please merge this pull request to keep Git base branch and terraform-managed resource state in sync"
         }
@@ -95,7 +91,7 @@ runs:
           shift
 
           echo "### Terraform \`apply\` failed ($p)"
-          details - open "$@"
+          details text open "$@"
           echo
           echo "Please fix <code>terragrunt.hcl</code> inputs/module, and then comment <code>/apply</code> to run terraform apply again"
         }
