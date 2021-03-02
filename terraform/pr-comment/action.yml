@@ -24,7 +24,6 @@ inputs:
     description: Working directory
     required: true
 
-
 runs:
   using: composite
   steps:
