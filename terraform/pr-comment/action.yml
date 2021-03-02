@@ -45,53 +45,39 @@ runs:
             open=" open";
           fi
 
-          shift; shift
-
           echo "<details${open}><summary>Show output</summary>"
           echo
           echo "\`\`\`${fmt}"
-          echo "$@"
+          echo "$3"
           echo "\`\`\`"
           echo "</details>"
         }
 
         plan_msg() {
-          local p=$1
-          shift
-
-          echo "### Terraform \`plan\` ($p)"
-          output=$(clean "$@")
+          echo "### Terraform \`plan\` ($1)"
+          output=$(clean "$2")
           details terraform closed "${output}"
           echo
           echo "Please review the plan above, ask a code owner to approve this pull request, and then comment <code>/apply</code> to run terraform apply"
         }
 
         failed_plan_msg() {
-          local p=$1
-          shift
-
-          echo "### Terraform \`plan\` failed ($p)"
-          details text open "$@"
+          echo "### Terraform \`plan\` failed ($1)"
+          details text open "$2"
           echo
           echo "Please fix <code>terragrunt.hcl</code> inputs/module (terraform plan will be automatically re-run)"
         }
 
         apply_msg() {
-          local p=$1
-          shift
-
-          echo "### Terraform \`apply\` ($p)"
-          details text closed "$@"
+          echo "### Terraform \`apply\` ($1)"
+          details text closed "$2"
           echo
           echo "Please merge this pull request to keep Git base branch and terraform-managed resource state in sync"
         }
 
         failed_apply_msg() {
-          local p=$1
-          shift
-
-          echo "### Terraform \`apply\` failed ($p)"
-          details text open "$@"
+          echo "### Terraform \`apply\` failed ($1)"
+          details text open "$2"
           echo
           echo "Please fix <code>terragrunt.hcl</code> inputs/module, and then comment <code>/apply</code> to run terraform apply again"
         }
