@@ -24,75 +24,88 @@ inputs:
     description: Working directory
     required: true
 
-
 runs:
   using: composite
   steps:
     - run: |
-        # Some parts borrowed here: https://github.com/robburger/terraform-pr-commenter/blob/6e991422c10b4744765245fc370d61f40136c9ec/entrypoint.sh
-        EXIT_CODE=${{ inputs.terraform-exit-code }}
-        ACCEPT_HEADER="Accept: application/vnd.github.v3+json"
-        AUTH_HEADER="Authorization: token ${{ inputs.github-token }}"
-        CONTENT_HEADER="Content-Type: application/json"
-        PR_COMMENTS_URL="https://api.github.com/repos/${{ github.repository }}/issues/${{ inputs.pull-request-number }}/comments"
+        clean() {
+          local subst='s/.*?'
+          subst+='(An execution plan has been generated and is shown below.*?|No changes. Infrastructure is up-to-date.*?)'
+          subst+='(Note: You didn.t specify an .-out. parameter to save this plan, so Terraform.*)?'
+          subst+='Releasing state lock. This may take a few moments.../$1/smg'
 
-        case "${{ inputs.terraform-run-type }}" in
+          echo "$@" | perl -0777 -pe "${subst}" | grep -Ev '^-{72}'
+        }
 
+        details() {
+          local fmt="$1"
+          local open=""
+          if [ "$2" == "open" ]; then
+            open=" open";
+          fi
+
+          echo "<details${open}><summary>Show output</summary>"
+          echo
+          echo "\`\`\`${fmt}"
+          echo "$3"
+          echo "\`\`\`"
+          echo "</details>"
+        }
+
+        plan_msg() {
+          echo "### Terraform \`plan\` ($1)"
+          output=$(clean "$2")
+          details terraform closed "${output}"
+          echo
+          echo "Please review the plan above, ask a code owner to approve this pull request, and then comment <code>/apply</code> to run terraform apply"
+        }
+
+        failed_plan_msg() {
+          echo "### Terraform \`plan\` failed ($1)"
+          details text open "$2"
+          echo
+          echo "Please fix <code>terragrunt.hcl</code> inputs/module (terraform plan will be automatically re-run)"
+        }
+
+        apply_msg() {
+          echo "### Terraform \`apply\` ($1)"
+          details text closed "$2"
+          echo
+          echo "Please merge this pull request to keep Git base branch and terraform-managed resource state in sync"
+        }
+
+        failed_apply_msg() {
+          echo "### Terraform \`apply\` failed ($1)"
+          details text open "$2"
+          echo
+          echo "Please fix <code>terragrunt.hcl</code> inputs/module, and then comment <code>/apply</code> to run terraform apply again"
+        }
+
+        case "${RUN_TYPE}" in
           plan)
             if [ ${EXIT_CODE} -eq 0 ]; then
-              # Plan succeeded
-              CLEAN_PLAN=$(echo "$INPUT" | sed -nr '/-{72}/,/-{72}/{ /-{72}/d; p }') # Strip refresh section
-              CLEAN_PLAN=${CLEAN_PLAN::65300} # GitHub has a 65535-char comment limit - truncate plan, leaving space for comment wrapper
-              PR_COMMENT="### Terraform \`plan\` (${{ inputs.working-directory }})
-        <details><summary>Show output</summary>
-
-        \`\`\`terraform
-        $CLEAN_PLAN
-        \`\`\`
-        </details>
-        
-        Please review the plan above, ask a code owner to approve this pull request, and then comment <code>/apply</code> to run terraform apply"
+              MSG=$(plan_msg "${WORKING_DIRECTORY}" "${INPUT}")
             else
-              PR_COMMENT="### Terraform \`plan\` failed (${{ inputs.working-directory }})
-        <details open><summary>Show output</summary>
-
-        \`\`\`
-        $INPUT
-        \`\`\`
-        </details>
-        
-        Please fix <code>terragrunt.hcl</code> inputs/module (terraform plan will be automatically re-run)"
+              MSG=$(failed_plan_msg "${WORKING_DIRECTORY}" "${INPUT}")
             fi
             ;;
 
           apply)
             if [ $EXIT_CODE -eq 0 ]; then
-              PR_COMMENT="### Terraform \`apply\` (${{ inputs.working-directory }})
-        <details><summary>Show output</summary>
-
-        \`\`\`
-        $INPUT
-        \`\`\`
-        </details>
-        
-        Please merge this pull request to keep Git base branch and terraform-managed resource state in sync"
+              MSG=$(apply_msg "${WORKING_DIRECTORY}" "${INPUT}")
             else
-              PR_COMMENT="### Terraform \`apply\` failed (${{ inputs.working-directory }})
-        <details open><summary>Show output</summary>
-
-        \`\`\`
-        $INPUT
-        \`\`\`
-        </details>
-        
-        Please fix <code>terragrunt.hcl</code> inputs/module, and then comment <code>/apply</code> to run terraform apply again"
+              MSG=$(failed_apply_msg "${WORKING_DIRECTORY}" "${INPUT}")
             fi
             ;;
         esac
 
-        # Add comment to PR.
-        PR_PAYLOAD=$(echo '{}' | jq --arg body "$PR_COMMENT" '.body = $body')
-        curl -sS -X POST -H "${AUTH_HEADER}" -H "${ACCEPT_HEADER}" -H "${CONTENT_HEADER}" -d "${PR_PAYLOAD}" -L "${PR_COMMENTS_URL}" > /dev/null
+        gh pr comment ${PULL_REQUEST_NUMBER} --body "${MSG}"
+
       shell: bash
       env:
+        RUN_TYPE: ${{ inputs.terraform-run-type }}
+        WORKING_DIRECTORY: ${{ inputs.working-directory }}
         INPUT: ${{ format('{0}{1}', inputs.terraform-stdout, inputs.terraform-stderr) }}
+        EXIT_CODE: ${{ inputs.terraform-exit-code }}
+        PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
