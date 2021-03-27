@@ -51,6 +51,7 @@ runs:
           echo "GITHUB_TOKEN=$GITHUB_TOKEN" >> $GITHUB_ENV
         fi
         
+        echo "Disabling gh interactive prompts"
         gh config set prompt disabled
       env:
         USER_NAME: ${{ inputs.user-name }}
