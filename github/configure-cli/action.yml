@@ -1,4 +1,4 @@
-name: configure-git
+name: configure-cli
 description: Configures git and gh
 
 inputs:
@@ -50,6 +50,8 @@ runs:
           echo "Configuring GitHub auth token"
           echo "GITHUB_TOKEN=$GITHUB_TOKEN" >> $GITHUB_ENV
         fi
+        
+        gh config set prompt disabled
       env:
         USER_NAME: ${{ inputs.user-name }}
         USER_EMAIL: ${{ inputs.user-email }}
