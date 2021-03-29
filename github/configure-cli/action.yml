@@ -1,4 +1,4 @@
-name: configure-git
+name: configure-cli
 description: Configures git and gh
 
 inputs:
@@ -26,13 +26,13 @@ runs:
         fi
 
         if [ ! -z "$USER_NAME" -a ! -z "$USER_EMAIL" ]; then
-          echo "Configuring user identity"
+          echo "Configuring git user identity"
           git config --global user.name "$USER_NAME"
           git config --global user.email "$USER_EMAIL"
         fi
 
         if [ ! -z "$GPG_KEY_ID" -a ! -z "$GPG_KEY_PEM" ]; then
-          echo "Configuring GPG signing key"
+          echo "Configuring git GPG signing key"
           echo -n "$GPG_KEY_PEM" | gpg --batch --quiet --no-tty --import
           echo -e "5\ny\n" | gpg --batch --quiet --no-tty --command-fd 0 --edit-key "$GPG_KEY_ID" trust
           git config --global commit.gpgsign true
@@ -47,9 +47,12 @@ runs:
         fi
         
         if [ ! -z "$GITHUB_TOKEN" ]; then
-          echo "Configuring GitHub auth token"
+          echo "Configuring gh auth token"
           echo "GITHUB_TOKEN=$GITHUB_TOKEN" >> $GITHUB_ENV
         fi
+        
+        echo "Disabling gh interactive prompt"
+        gh config set prompt disabled
       env:
         USER_NAME: ${{ inputs.user-name }}
         USER_EMAIL: ${{ inputs.user-email }}
