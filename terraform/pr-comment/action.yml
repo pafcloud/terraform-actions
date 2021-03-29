@@ -1,5 +1,5 @@
-name: Add terraform plan or apply output to a pull request comment
-description: Add terraform plan or apply output to a pull request comment
+name: pr-comment
+description: Adds terraform plan or apply output to a pull request comment
 
 inputs:
   github-token:
@@ -15,8 +15,8 @@ inputs:
     description: Terraform exit code
     required: true
   terraform-run-type:
-    description: Whatever this is run is plan or apply
-    default: plan
+    description: Terraform run type, i.e. plan-for-apply, apply-on-comment or apply-on-merge 
+    required: true
   pull-request-number:
     description: Pull request number
     required: true
@@ -57,32 +57,34 @@ runs:
           output=$(clean "$2")
           details terraform closed "${output}"
           echo
-          echo "Please review the plan above, ask a code owner to approve this pull request, and then comment <code>/apply</code> to run terraform apply"
+          echo "Please review the plan above, ask code owners to approve this pull request, and then run terraform apply by commenting <code>/apply</code> or merging this PR"
         }
 
         failed_plan_msg() {
           echo "### Terraform \`plan\` failed ($1)"
           details text open "$2"
           echo
-          echo "Please fix <code>terragrunt.hcl</code> inputs/module (terraform plan will be automatically re-run)"
+          echo "Please fix <code>terragrunt.hcl</code> inputs/module. Terraform plan is then automatically run again"
         }
 
         apply_msg() {
           echo "### Terraform \`apply\` ($1)"
           details text closed "$2"
-          echo
-          echo "Please merge this pull request to keep Git base branch and terraform-managed resource state in sync"
+          if [ "$3" = "apply-on-comment" ]; then
+            echo
+            echo "Please merge this pull request to keep Git base branch and terraform-managed resource state in sync"
+          fi
         }
 
         failed_apply_msg() {
           echo "### Terraform \`apply\` failed ($1)"
           details text open "$2"
           echo
-          echo "Please fix <code>terragrunt.hcl</code> inputs/module, and then comment <code>/apply</code> to run terraform apply again"
+          echo "Please fix <code>terragrunt.hcl</code> inputs/module, and run terraform apply again"
         }
 
         case "${RUN_TYPE}" in
-          plan)
+          plan-for-apply)
             if [ ${EXIT_CODE} -eq 0 ]; then
               MSG=$(plan_msg "${WORKING_DIRECTORY}" "${INPUT}")
             else
@@ -90,13 +92,17 @@ runs:
             fi
             ;;
 
-          apply)
+          apply-on-comment|apply-on-merge)
             if [ $EXIT_CODE -eq 0 ]; then
-              MSG=$(apply_msg "${WORKING_DIRECTORY}" "${INPUT}")
+              MSG=$(apply_msg "${WORKING_DIRECTORY}" "${INPUT}" "${RUN_TYPE}")
             else
               MSG=$(failed_apply_msg "${WORKING_DIRECTORY}" "${INPUT}")
             fi
             ;;
+            
+          *)
+            echo "ERROR: Unexpected terraform run type: ${RUN_TYPE}"
+            exit 5
         esac
 
         gh pr comment ${PULL_REQUEST_NUMBER} --body "${MSG}"
