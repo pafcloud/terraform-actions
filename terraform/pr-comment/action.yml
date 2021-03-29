@@ -80,7 +80,7 @@ runs:
           echo "### Terraform \`apply\` failed ($1)"
           details text open "$2"
           echo
-          echo "Please fix <code>terragrunt.hcl</code> inputs/module, and run terraform apply again"
+          echo "Please fix <code>terragrunt.hcl</code> inputs/module, and then run terraform apply again"
         }
 
         case "${RUN_TYPE}" in
