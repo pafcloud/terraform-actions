@@ -24,7 +24,7 @@ runs:
 
         print_path() {
           dir=$(echo "$@" | grep terragrunt.hcl$ | sed 's/terragrunt.hcl//')
-          if [ \! -f "${dir}/no-terragrunt-apply" ]; then
+          if [ ! -f "${dir}/no-terragrunt-apply" ]; then
             echo "${dir}"
           fi
         }
