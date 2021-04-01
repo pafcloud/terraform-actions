@@ -10,9 +10,12 @@ inputs:
     required: true
 
 outputs:
-  paths:
-    description: JSON array of paths
-    value: ${{ steps.changes.outputs.paths }}
+  updates:
+    description: JSON array of paths with added or modified terragrunt.hcl files
+    value: ${{ steps.changes.outputs.updates }}
+  deletions:
+    description: JSON array of paths with deleted terragrunt.hcl files
+    value: ${{ steps.changes.outputs.deletions }}
 
 runs:
   using: composite
