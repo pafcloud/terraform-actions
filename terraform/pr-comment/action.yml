@@ -15,7 +15,7 @@ inputs:
     description: Terraform exit code
     required: true
   terraform-run-type:
-    description: Terraform run type, i.e. plan-for-apply, apply-on-comment or apply-on-merge 
+    description: Terraform run type, i.e. plan-for-apply, plan-for-destroy, apply-on-comment, apply-on-merge or destroy-on-merge
     required: true
   pull-request-number:
     description: Pull request number
@@ -57,7 +57,11 @@ runs:
           output=$(clean "$2")
           details terraform closed "${output}"
           echo
-          echo "Please review the plan above, ask code owners to approve this pull request, and then run terraform apply by commenting <code>/apply</code> or merging this PR"
+          if [ "$3" = "plan-for-apply" ]; then
+            echo "Please review the plan above, ask code owners to approve this pull request, and then run terraform apply by commenting <code>/apply</code> or merging this PR"
+          else
+            echo "Please review the plan above, ask code owners to approve this pull request, and then run terraform destroy by merging this PR"
+          fi
         }
 
         failed_plan_msg() {
@@ -82,11 +86,23 @@ runs:
           echo
           echo "Please fix <code>terragrunt.hcl</code> inputs/module, and then run terraform apply again"
         }
+        
+        destroy_msg() {
+          echo "### Terraform \`destroy\` ($1)"
+          details text closed "$2"
+        }
+
+        failed_destroy_msg() {
+          echo "### Terraform \`destroy\` failed ($1)"
+          details text open "$2"
+          echo
+          echo "Please run terraform destroy manually"
+        }
 
         case "${RUN_TYPE}" in
-          plan-for-apply)
+          plan-for-apply|plan-for-destroy)
             if [ ${EXIT_CODE} -eq 0 ]; then
-              MSG=$(plan_msg "${WORKING_DIRECTORY}" "${INPUT}")
+              MSG=$(plan_msg "${WORKING_DIRECTORY}" "${INPUT}" "${RUN_TYPE}")
             else
               MSG=$(failed_plan_msg "${WORKING_DIRECTORY}" "${INPUT}")
             fi
@@ -99,7 +115,15 @@ runs:
               MSG=$(failed_apply_msg "${WORKING_DIRECTORY}" "${INPUT}")
             fi
             ;;
-            
+          
+          destroy-on-merge)
+            if [ $EXIT_CODE -eq 0 ]; then
+              MSG=$(destroy_msg "${WORKING_DIRECTORY}" "${INPUT}")
+            else
+              MSG=$(failed_destroy_msg "${WORKING_DIRECTORY}" "${INPUT}")
+            fi
+            ;;
+          
           *)
             echo "ERROR: Unexpected terraform run type: ${RUN_TYPE}"
             exit 5
