@@ -1,5 +1,5 @@
 name: pr-comment
-description: Adds terraform plan or apply output to a pull request comment
+description: Adds terraform plan, apply or destroy output to a pull request comment
 
 inputs:
   github-token:
@@ -96,7 +96,7 @@ runs:
           echo "### Terraform \`destroy\` failed ($1)"
           details text open "$2"
           echo
-          echo "Please run terraform destroy manually"
+          echo "Please run terraform destroy manually (do \`git checkout $3\` to restore \`terragrunt.hcl\`)"
         }
 
         case "${RUN_TYPE}" in
@@ -120,7 +120,10 @@ runs:
             if [ $EXIT_CODE -eq 0 ]; then
               MSG=$(destroy_msg "${WORKING_DIRECTORY}" "${INPUT}")
             else
-              MSG=$(failed_destroy_msg "${WORKING_DIRECTORY}" "${INPUT}")
+              auth="Authorization: Bearer ${{ inputs.github-token }}"
+              pr_url="https://api.github.com/repos/${{ github.repository }}/pulls/${{ inputs.pull-request-number }}"
+              pr_base_sha=$(curl -sH "$auth" "$pr_url" | jq -r .base.sha)
+              MSG=$(failed_destroy_msg "${WORKING_DIRECTORY}" "${INPUT}" "${pr_base_sha}")
             fi
             ;;
           
