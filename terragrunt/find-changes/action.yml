@@ -34,7 +34,7 @@ runs:
 
         print_changed_files_paged() {
           page_num=1
-          while [ "[]" != "${page:-''}" ]; do
+          while [ "[]" != "$page" -a "$page_num" -lt "10" ]; do
             page="$(curl -sH "${AUTH_HEADER}" "${URL}&page=${page_num}" | jq -c .)"
             ((page_num++))
             echo "$page"
@@ -51,7 +51,7 @@ runs:
           print_path "$f"
         done)
 
-        # Split to JSON list
+        # Outputs as JSON arrays
         echo ::set-output name=updates::$(echo -n ${updates} | jq -Rsc 'split(" ")')
         echo ::set-output name=deletions::$(echo -n ${deletions} | jq -Rsc 'split(" ")')
       shell: bash
