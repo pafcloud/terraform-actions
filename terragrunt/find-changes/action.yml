@@ -1,5 +1,5 @@
 name: Finds terragrunt config changes
-description: Finds paths with changes to 'terragrunt.hcl' files. Excludes paths that have a 'no-terragrunt-apply' file present.
+description: Finds directory paths with changes to 'terragrunt.hcl' files. Excludes paths that have a 'no-terragrunt-apply' file present.
 
 inputs:
   github-token:
@@ -11,10 +11,10 @@ inputs:
 
 outputs:
   updates:
-    description: JSON array of paths with added or modified terragrunt.hcl files
+    description: JSON array of directory paths with added or modified terragrunt.hcl files
     value: ${{ steps.changes.outputs.updates }}
   deletions:
-    description: JSON array of paths with deleted terragrunt.hcl files
+    description: JSON array of directory paths with deleted terragrunt.hcl files
     value: ${{ steps.changes.outputs.deletions }}
 
 runs:
@@ -27,22 +27,31 @@ runs:
 
         print_path() {
           dir=$(echo "$@" | grep terragrunt.hcl$ | sed 's/terragrunt.hcl//')
-          if [ ! -f "${dir}/no-terragrunt-apply" ]; then
+          if [ ! -z "$dir" -a ! -f "${dir}/no-terragrunt-apply" ]; then
             echo "${dir}"
           fi
         }
 
-        resp=$(curl -sH "${AUTH_HEADER}" ${URL})
+        print_changed_files_paged() {
+          page_num=1
+          while [ "[]" != "$page" -a "$page_num" -lt "10" ]; do
+            page="$(curl -sH "${AUTH_HEADER}" "${URL}&page=${page_num}" | jq -c .)"
+            ((page_num++))
+            echo "$page"
+          done
+        }
 
-        updates=$(for f in $(echo "${resp}" | jq -r '.[] | select(.status != "removed") | .filename'); do
+        changed_files="$(print_changed_files_paged | jq '.[]' | jq -sc .)"
+
+        updates=$(for f in $(echo "${changed_files}" | jq -r '.[] | select(.status != "removed") | .filename'); do
           print_path "$f"
         done)
 
-        deletions=$(for f in $(echo "${resp}" | jq -r '.[] | select(.status == "removed") | .filename'); do
+        deletions=$(for f in $(echo "${changed_files}" | jq -r '.[] | select(.status == "removed") | .filename'); do
           print_path "$f"
         done)
 
-        # split to json list
+        # Outputs as JSON arrays
         echo ::set-output name=updates::$(echo -n ${updates} | jq -Rsc 'split(" ")')
         echo ::set-output name=deletions::$(echo -n ${deletions} | jq -Rsc 'split(" ")')
       shell: bash
