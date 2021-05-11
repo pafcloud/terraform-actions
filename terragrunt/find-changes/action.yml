@@ -33,9 +33,8 @@ runs:
         }
 
         print_changed_files_paged() {
-          page=""
-          page_num=0
-          while [ "[]" != "$page" ]; do
+          page_num=1
+          while [ "[]" != "${page:-''}" ]; do
             page="$(curl -sH "${AUTH_HEADER}" "${URL}&page=${page_num}" | jq -c .)"
             ((page_num++))
             echo "$page"
