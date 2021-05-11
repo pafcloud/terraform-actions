@@ -23,7 +23,7 @@ runs:
     - id: changes
       run: |
       
-        MAX_FILES_PER_PAGE="100"
+        MAX_FILES_PER_PAGE=100
         
         AUTH_HEADER="Authorization: Bearer ${{ inputs.github-token }}"
         URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${{ inputs.pull-request-number }}/files?per_page=$MAX_FILES_PER_PAGE"
@@ -39,12 +39,12 @@ runs:
           page_num=1
           # Since GitHub workflows can only run max 256 parallel jobs, max out at 800 changed files, which can
           # accommodate 256 terragrunt.hcl's + possible .terraform-version and .terragrunt-version for each HCL
-          while [ "$page_num" -le "8" ]; do
+          while [ $page_num -le 8 ]; do
             page="$(curl -sH "${AUTH_HEADER}" "${URL}&page=${page_num}" | jq -c .)"
-            num_files="$(echo $page | jq length)"
+            num_files=$(echo $page | jq length)
             ((page_num++))
             echo "$page"
-            if [ "$num_files" -lt "$MAX_FILES_PER_PAGE" ]; then
+            if [ $num_files -lt $MAX_FILES_PER_PAGE ]; then
               # No need to query for more
               break
             fi
