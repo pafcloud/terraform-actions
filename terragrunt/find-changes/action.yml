@@ -33,6 +33,7 @@ runs:
         }
 
         print_changed_files_paged() {
+          page=""
           page_num=0
           while [ "[]" != "$page" ]; do
             page="$(curl -sH "${AUTH_HEADER}" "${URL}&page=${page_num}" | jq -c .)"
@@ -41,13 +42,13 @@ runs:
           done
         }
 
-        changed_files="$(print_changed_files_paged | jq '.[]' | jq -sc .)"
+        changed_files="$(print_changed_files_paged | jq '.[]' | jq -sc .')"
 
-        updates=$(for f in $(echo "${changed_files}" | jq -r '.[] | select(.status != "removed") | .filename | unique'); do
+        updates=$(for f in $(echo "${changed_files}" | jq -r '.[] | select(.status != "removed") | .filename'); do
           print_path "$f"
         done)
 
-        deletions=$(for f in $(echo "${changed_files}" | jq -r '.[] | select(.status == "removed") | .filename | unique'); do
+        deletions=$(for f in $(echo "${changed_files}" | jq -r '.[] | select(.status == "removed") | .filename'); do
           print_path "$f"
         done)
 
