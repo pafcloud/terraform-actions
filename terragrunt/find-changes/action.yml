@@ -36,10 +36,9 @@ runs:
         }
 
         print_changed_files_paged() {
-          page_num=0
-          # Since GitHub workflows can only run max 256 parallel jobs, max out at 800 changed files, which can
-          # accommodate 256 terragrunt.hcl's + possible .terraform-version and .terragrunt-version for each HCL
-          while [ $((page_num++)) -le 8 ]; do
+          # Since GitHub workflows can only run max 256 parallel jobs, we max out at 800 changed files, which can
+          # accommodate 256 modified terragrunt.hcl files + .terraform-version and .terragrunt-version for each HCL
+          for page_num in {1..8}; do
             page="$(curl -sH "${AUTH_HEADER}" "${URL}&page=${page_num}" | jq -c .)"
             num_files=$(echo $page | jq length)
             echo "$page"
