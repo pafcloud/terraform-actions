@@ -32,17 +32,26 @@ runs:
           fi
         }
 
-        resp=$(curl -sH "${AUTH_HEADER}" ${URL})
+        print_changed_files_paged() {
+          page_num=0
+          while [ "[]" != "$page" ]; do
+            page="$(curl -sH "${AUTH_HEADER}" "${URL}&page=${page_num}" | jq -c .)"
+            ((page_num++))
+            echo "$page"
+          done
+        }
 
-        updates=$(for f in $(echo "${resp}" | jq -r '.[] | select(.status != "removed") | .filename'); do
+        changed_files="$(print_changed_files_paged | jq '.[]' | jq -sc .)"
+
+        updates=$(for f in $(echo "${changed_files}" | jq -r '.[] | select(.status != "removed") | .filename | unique'); do
           print_path "$f"
         done)
 
-        deletions=$(for f in $(echo "${resp}" | jq -r '.[] | select(.status == "removed") | .filename'); do
+        deletions=$(for f in $(echo "${changed_files}" | jq -r '.[] | select(.status == "removed") | .filename | unique'); do
           print_path "$f"
         done)
 
-        # split to json list
+        # Split to JSON list
         echo ::set-output name=updates::$(echo -n ${updates} | jq -Rsc 'split(" ")')
         echo ::set-output name=deletions::$(echo -n ${deletions} | jq -Rsc 'split(" ")')
       shell: bash
