@@ -1,4 +1,4 @@
-name: Finds terragrunt config changes
+name: find-changes
 description: Finds directory paths with changes to 'terragrunt.hcl' files. Excludes paths that have a 'no-terragrunt-apply' file present.
 
 inputs:
@@ -22,8 +22,11 @@ runs:
   steps: 
     - id: changes
       run: |
-        URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${{ inputs.pull-request-number }}/files?per_page=100"
+      
+        MAX_FILES_PER_PAGE=100
+        
         AUTH_HEADER="Authorization: Bearer ${{ inputs.github-token }}"
+        URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${{ inputs.pull-request-number }}/files?per_page=$MAX_FILES_PER_PAGE"
 
         print_path() {
           dir=$(echo "$@" | grep terragrunt.hcl$ | sed 's/terragrunt.hcl//')
@@ -33,11 +36,16 @@ runs:
         }
 
         print_changed_files_paged() {
-          page_num=1
-          while [ "[]" != "$page" -a "$page_num" -lt "10" ]; do
+          # Since GitHub workflows can only run max 256 parallel jobs, we max out at 800 changed files, which can
+          # accommodate 256 modified terragrunt.hcl files + .terraform-version and .terragrunt-version for each HCL
+          for page_num in {1..8}; do
             page="$(curl -sH "${AUTH_HEADER}" "${URL}&page=${page_num}" | jq -c .)"
-            ((page_num++))
+            num_files=$(echo "$page" | jq length)
             echo "$page"
+            if [ $num_files -lt $MAX_FILES_PER_PAGE ]; then
+              # No need to query for more
+              break
+            fi
           done
         }
 
