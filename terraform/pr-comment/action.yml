@@ -28,15 +28,6 @@ runs:
   using: composite
   steps:
     - run: |
-        clean() {
-          local subst='s/.*?'
-          subst+='(An execution plan has been generated and is shown below.*?|No changes. Infrastructure is up-to-date.*?)'
-          subst+='(Note: You didn.t specify an .-out. parameter to save this plan, so Terraform.*)?'
-          subst+='Releasing state lock. This may take a few moments.../$1/smg'
-
-          echo "$@" | perl -0777 -pe "${subst}" | grep -Ev '^-{72}'
-        }
-
         details() {
           local fmt="$1"
           local open=""
@@ -54,8 +45,7 @@ runs:
 
         plan_msg() {
           echo "### Terraform \`plan\` ($1)"
-          output=$(clean "$2")
-          details terraform closed "${output}"
+          details terraform closed "$2"
           echo
           if [ "$3" = "plan-for-apply" ]; then
             echo "Please review the plan above, ask code owners to approve this pull request, and then run terraform apply by commenting <code>/apply</code> or merging this PR"
@@ -86,7 +76,7 @@ runs:
           echo
           echo "Please fix <code>terragrunt.hcl</code> inputs/module, and then run terraform apply again"
         }
-        
+
         destroy_msg() {
           echo "### Terraform \`destroy\` ($1)"
           details text closed "$2"
@@ -115,7 +105,7 @@ runs:
               MSG=$(failed_apply_msg "${WORKING_DIRECTORY}" "${INPUT}")
             fi
             ;;
-          
+
           destroy-on-merge)
             if [ $EXIT_CODE -eq 0 ]; then
               MSG=$(destroy_msg "${WORKING_DIRECTORY}" "${INPUT}")
@@ -126,7 +116,7 @@ runs:
               MSG=$(failed_destroy_msg "${WORKING_DIRECTORY}" "${INPUT}" "${pr_base_sha}")
             fi
             ;;
-          
+
           *)
             echo "ERROR: Unexpected terraform run type: ${RUN_TYPE}"
             exit 5
