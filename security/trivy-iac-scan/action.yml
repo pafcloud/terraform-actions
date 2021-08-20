@@ -30,29 +30,33 @@ runs:
       run: |
         if [ -s "./test-results/${{ inputs.scan-dir }}_results.md" ]
         then
-           echo "::set-output name=valid-results-file::true"
+          echo "::set-output name=valid-results-file::true"
+        else
+          rm "./test-results/${{ inputs.scan-dir }}_results.md"
         fi
 
     - name: Create collapsable results file
-      if: ${{ steps.results-file-exists.outputs.valid-results-file }}
       shell: bash
       run: |
-        cd test-results
+        if [ -s "./test-results/${{ inputs.scan-dir }}_results.md" ]
+        then
+          cd test-results
 
-        cat <<EOT >> trivy_${{ inputs.scan-dir }}_results.md
-        #### \`Terraform Security Scan results - ${{ inputs.scan-dir }}\`
-        <details><summary>Show Output</summary>
+          cat <<EOT >> trivy_${{ inputs.scan-dir }}_results.md
+          #### \`Terraform Security Scan results - ${{ inputs.scan-dir }}\`
+          <details><summary>Show Output</summary>
 
-        \`\`\`
-        EOT
+          \`\`\`
+          EOT
 
-        cat ${{ inputs.scan-dir }}_results.md >> trivy_${{ inputs.scan-dir }}_results.md
+          cat ${{ inputs.scan-dir }}_results.md >> trivy_${{ inputs.scan-dir }}_results.md
 
-        cat <<EOT >> trivy_${{ inputs.scan-dir }}_results.md
-        \`\`\`
+          cat <<EOT >> trivy_${{ inputs.scan-dir }}_results.md
+          \`\`\`
 
-        </details>
-        EOT
+          </details>
+          EOT
+        fi
 
     - name: Remove any existing comment for the module
       uses: marocchino/sticky-pull-request-comment@88f0280372b8bd91d1dd2c67097b4da9918a1f1c
@@ -61,7 +65,6 @@ runs:
         delete: true
 
     - name: Add results comment to PR
-      if: ${{ steps.results-file-exists.outputs.valid-results-file }}
       uses: marocchino/sticky-pull-request-comment@88f0280372b8bd91d1dd2c67097b4da9918a1f1c
       with:
         header: "trivy_${{ inputs.scan-dir }}_results"
