@@ -1,0 +1,69 @@
+name: Find changes
+description: Finds changed directories given the current PR
+
+outputs:
+  changed-dirs:
+    description: JSON array of directory paths with added or modified files for the current PR
+    value: ${{ steps.set-matrix.outputs.changes-matrix }}
+
+runs:
+  using: "composite"
+
+  steps:
+    - name: Check changed files
+      id: diff
+      shell: bash
+      run: |
+        # See https://github.community/t/check-pushed-file-changes-with-git-diff-tree-in-github-actions/17220/10
+        if [ $GITHUB_BASE_REF ]; then
+          # Pull Request
+          git fetch origin $GITHUB_BASE_REF --depth=1
+          export DIFF=$( git diff --name-only origin/$GITHUB_BASE_REF $GITHUB_SHA )
+          echo "Diff between origin/$GITHUB_BASE_REF and $GITHUB_SHA"
+        else
+          # Push
+          git fetch origin ${{ github.event.before }} --depth=1
+          export DIFF=$( git diff --name-only ${{ github.event.before }} $GITHUB_SHA )
+          echo "Diff between ${{ github.event.before }} and $GITHUB_SHA"
+        fi
+        echo "$DIFF"
+        # Escape newlines (replace \n with %0A)
+        echo "::set-output name=diff::$( echo "$DIFF" | sed ':a;N;$!ba;s/\n/%0A/g' )"
+
+    - name: Set matrix for build
+      id: set-matrix
+      shell: bash
+      run: |
+        # See https://stackoverflow.com/a/62953566/11948346
+        DIFF="${{ steps.diff.outputs.diff }}"
+        JSON="{\"include\":["
+
+        # Loop by lines
+        while read path; do
+          # Set $directory to substring before /
+          directory="$( echo $path | cut -d'/' -f2 -s )"
+
+          if [ -z "$directory" ]; then
+            continue # Exclude root directory
+          elif [ "$directory" == workflows ]; then
+            continue # Exclude workflows directory
+          elif [ "$directory" == .github ]; then
+            continue # Exclude .github directory
+          fi
+
+          # Add build to the matrix only if it is not already included
+          JSONline="{\"directory\": \"$directory\"},"
+          if [[ "$JSON" != *"$JSONline"* ]]; then
+            JSON="$JSON$JSONline"
+          fi
+        done <<< "$DIFF"
+
+        # Remove last "," and add closing brackets
+        if [[ $JSON == *, ]]; then
+          JSON="${JSON%?}"
+        fi
+        JSON="$JSON]}"
+        echo $JSON
+
+        # Set output
+        echo "::set-output name=changes-matrix::$( echo "$JSON" )"

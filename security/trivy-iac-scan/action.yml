@@ -1,0 +1,69 @@
+name: Scan Terraform module
+description: Scan Terraform module for security vulnerabilities
+
+inputs:
+  scan-dir:
+    description: The directory to scan
+    required: true
+
+runs:
+  using: "composite"
+
+  steps:
+    - name: Create test results directory
+      shell: bash
+      run: |
+        mkdir ./test-results
+
+    - name: Run Trivy vulnerability scanner in IaC mode
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'config'
+        scan-ref: "./modules/${{ inputs.scan-dir }}"
+        hide-progress: false
+        format: 'table'
+        output: "./test-results/${{ inputs.scan-dir }}_results.md"
+
+    - name: Verify results file
+      id: results-file-exists
+      shell: bash
+      run: |
+        if [ -s "./test-results/${{ inputs.scan-dir }}_results.md" ]
+        then
+           echo "::set-output name=valid-results-file::true"
+        fi
+
+    - name: Create collapsable results file
+      if: ${{ steps.results-file-exists.outputs.valid-results-file }}
+      shell: bash
+      run: |
+        cd test-results
+
+        cat <<EOT >> trivy_${{ inputs.scan-dir }}_results.md
+        #### \`Terraform Security Scan results - ${{ inputs.scan-dir }}\`
+        <details><summary>Show Output</summary>
+
+        \`\`\`
+        EOT
+
+        cat ${{ inputs.scan-dir }}_results.md >> trivy_${{ inputs.scan-dir }}_results.md
+
+        cat <<EOT >> trivy_${{ inputs.scan-dir }}_results.md
+        \`\`\`
+
+        </details>
+        EOT
+
+    - name: Remove any existing comment for the module
+      uses: marocchino/sticky-pull-request-comment@88f0280372b8bd91d1dd2c67097b4da9918a1f1c
+      with:
+        header: "trivy_${{ inputs.scan-dir }}_results"
+        delete: true
+
+    - name: Add results comment to PR
+      if: ${{ steps.results-file-exists.outputs.valid-results-file }}
+      uses: marocchino/sticky-pull-request-comment@88f0280372b8bd91d1dd2c67097b4da9918a1f1c
+      with:
+        header: "trivy_${{ inputs.scan-dir }}_results"
+        recreate: true
+        path: ./test-results/trivy_${{ inputs.scan-dir }}_results.md
