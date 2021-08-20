@@ -47,7 +47,7 @@ runs:
           <details><summary>Show Output</summary>
 
           \`\`\`
-          EOT
+        EOT
 
           cat ${{ inputs.scan-dir }}_results.md >> trivy_${{ inputs.scan-dir }}_results.md
 
@@ -55,7 +55,7 @@ runs:
           \`\`\`
 
           </details>
-          EOT
+        EOT
         fi
 
     - name: Remove any existing comment for the module
