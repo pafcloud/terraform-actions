@@ -24,6 +24,7 @@ runs:
     - id: main
       run: |
         declare -A checksums=(
+          ["0.32.3"]="7d7113f1578a8dea6ce951be80f4dc8d83a63d190d4bc40ebe4f0985daf76643"
           ["0.31.3"]="7c79777b89a5cd5aab9ae30e33bbcb49b3b43c6c5277d1819c2387ae30277abb"
           ["0.28.16"]="8c1a9b30402964a5bd9613e0761593ed4cd0b17aa341b50b59dec10fd2e9f87e"
           ["0.27.1"]="b9f174e6613fe84121352ecdd238783504b642d390df87f8f8d760b42c44c02a"
