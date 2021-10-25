@@ -1,0 +1,18 @@
+name: "Terragrunt plan and apply"
+runs:
+  using: node12
+  main: "dist/index.js"
+inputs:
+  default-terragrunt-version:
+    required: true
+    description: "Version of terragrunt to be used when no .terragrunt-version file is present"
+  default-terraform-version:
+    required: true
+    description: "Version of terragrunt to be used when no .terraform-version file is present"
+  working-directory:
+    required: true
+    description: "The directory in which to run terragrunt"
+  github-token:
+    required: true
+    description: "Github token, for posting pull request comments"
+description: "Plans, applies terragrunt modules and publishes PR comments"

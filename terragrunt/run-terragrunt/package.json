@@ -1,0 +1,24 @@
+{
+  "name": "terve-terragrunt-action",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "ncc build lib/index.js -o dist --source-map --license licenses.txt"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@actions/core": "^1.6.0",
+    "@actions/exec": "^1.1.0",
+    "@actions/github": "^5.0.0",
+    "@actions/io": "^1.1.1",
+    "find-up": "^5.0.0"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.31.1",
+    "jest": "^27.3.1"
+  }
+}
