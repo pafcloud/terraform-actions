@@ -15,4 +15,9 @@ inputs:
   github-token:
     required: true
     description: "Github token, for posting pull request comments"
+  run-type:
+    required: true
+    description: |
+     Desired terragrunt task, one of: plan-for-apply, apply-on-comment, apply-on-merge,
+     plan-for-destroy, destroy-on-merge
 description: "Plans, applies terragrunt modules and publishes PR comments"

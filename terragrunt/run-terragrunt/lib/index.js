@@ -10,11 +10,11 @@ let run = async function () {
         let tf_default = core.getInput('default-terraform-version');
         let tg_default = core.getInput('default-terragrunt-version');
         let working_directory = core.getInput('working-directory', {required: true});
-        let run_type = "plan-for-apply";
+        let run_type = core.getInput('run-type', {required: true});
 
         await terve.setup(working_directory, tf_default, tg_default);
 
-        let result = await terragrunt.plan();
+        let result = await terragrunt.run(run_type, working_directory);
 
         await pr.comment(run_type, working_directory, result);
     } catch (error) {
