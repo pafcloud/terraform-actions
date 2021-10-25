@@ -5,8 +5,6 @@ const pr = require('./pr')
 
 let run = async function () {
     try {
-        throw new Error("foo bar");
-
         await terve.install("0.6.1");
 
         let tf_default = core.getInput('default-terraform-version');
