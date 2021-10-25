@@ -10357,8 +10357,6 @@ const pr = __nccwpck_require__(515)
 
 let run = async function () {
     try {
-        throw new Error("foo bar");
-
         await terve.install("0.6.1");
 
         let tf_default = core.getInput('default-terraform-version');
