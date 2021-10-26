@@ -103,14 +103,49 @@ module.exports = { comment };
 
 const exec = __nccwpck_require__(1514);
 
-let plan = async function (working_directory) {
+let no_command = function (run_type) {
+    return async () => { throw new Error(`Invalid run-type ${run_type}`) };
+}
+
+let exec_terragrunt = async function(args, working_directory) {
+    if (!working_directory) {
+        throw new TypeError('working-directory is not set');
+    }
     return await exec.getExecOutput(
         "terragrunt",
-        ['plan', '-no-color', '-input=false'],
+        args,
         { cwd: working_directory, env: { ...process.env, ...{ TF_CLI_ARGS_init: '-no-color' } } });
+}
+
+let plan = async function (working_directory) {
+    if (!working_directory) {
+        throw new TypeError('working-directory is not set');
+    }
+    return await exec_terragrunt(
+        ['plan', '-no-color', '-input=false'],
+        working_directory);
 };
 
-module.exports = { plan };
+let apply = async function (working_directory) {
+    if (!working_directory) {
+        throw new TypeError('working-directory is not set');
+    }
+    return await exec_terragrunt(
+        ['apply', '-no-color', '-auto-approve', '-input=false'],
+        working_directory);
+}
+
+let commands = {
+    'plan-for-apply': plan,
+    'apply-on-comment': apply
+}
+
+let run = async function (run_type, working_directory) {
+    let command = commands[run_type] || no_command(run_type);
+    return await command.call(this, working_directory);
+}
+
+module.exports = { run };
 
 
 /***/ }),
@@ -10362,11 +10397,11 @@ let run = async function () {
         let tf_default = core.getInput('default-terraform-version');
         let tg_default = core.getInput('default-terragrunt-version');
         let working_directory = core.getInput('working-directory', {required: true});
-        let run_type = "plan-for-apply";
+        let run_type = core.getInput('run-type', {required: true});
 
         await terve.setup(working_directory, tf_default, tg_default);
 
-        let result = await terragrunt.plan();
+        let result = await terragrunt.run(run_type, working_directory);
 
         await pr.comment(run_type, working_directory, result);
     } catch (error) {
