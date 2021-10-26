@@ -10386,7 +10386,6 @@ var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 (() => {
 const core = __nccwpck_require__(2186);
-const exec = __nccwpck_require__(1514);
 const terve = __nccwpck_require__(3031);
 const terragrunt = __nccwpck_require__(4922);
 const pr = __nccwpck_require__(515)
@@ -10395,16 +10394,10 @@ let run = async function () {
     try {
         await terve.install("0.6.1");
 
-        let pwd = await exec.getExecOutput("pwd");
-        let ls = await exec.getExecOutput("ls -lah");
-
-        core.info(`pwd is ${pwd.stdout}`);
-        core.info(`ls is \n ${ls.stdout}`);
-
-
         let tf_default = core.getInput('default-terraform-version');
         let tg_default = core.getInput('default-terragrunt-version');
-        let working_directory = core.getInput('working-directory', {required: true});
+        let relative_working_dir = core.getInput('working-directory', {required: true});
+        let working_directory = `${process.cwd()}/${relative_working_dir}`;
         let run_type = core.getInput('run-type', {required: true});
 
         await terve.setup(working_directory, tf_default, tg_default);
