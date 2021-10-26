@@ -14,3 +14,22 @@ blocks in Terragrunt modules. You can disable the wrapper but that makes really 
  
 The goal of this action is to support `dependency` blocks and not having to deal with `stderror`, `stdout` and 
 `exit_code` as outputs.  
+
+## Developing
+
+The action is written in javascript and compiled to a single file (`dist/index.js`) using `ncc`. 
+
+After making your changes, please compile by running `npm run prepare` and make sure you commit `dist/index.js`.
+
+### Git hooks
+
+There's git hook provided in [.githooks/pre-commit].
+
+The hook will make sure that the code is compiled if any js file has been changed.
+
+To install it, run this:
+
+```bash
+$ cd terraform-actions # Run it in the root of the repo
+$ git config core.hooksPath .githooks
+```
