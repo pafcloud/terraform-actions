@@ -1,4 +1,5 @@
 const core = require('@actions/core');
+const exec = require('@actions/exec');
 const terve = require('./terve');
 const terragrunt = require('./terragrunt');
 const pr = require('./pr')
@@ -6,6 +7,13 @@ const pr = require('./pr')
 let run = async function () {
     try {
         await terve.install("0.6.1");
+
+        let pwd = await exec.getExecOutput("pwd");
+        let ls = await exec.getExecOutput("ls -lah");
+
+        core.info(`pwd is ${pwd.stdout}`);
+        core.info(`ls is \n ${ls.stdout}`);
+
 
         let tf_default = core.getInput('default-terraform-version');
         let tg_default = core.getInput('default-terragrunt-version');
