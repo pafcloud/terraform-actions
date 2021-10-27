@@ -14,9 +14,19 @@ describe('terragrunt.run', () => {
         });
     });
 
-    describe('when run_type is plan-for-apply', () => {
-        describe('and working-directory is present', () => {
-            test('it calls terragrunt', async () => {
+    describe('when working-directory is not set', () => {
+       ['plan-for-apply', 'plan-for-destroy', 'apply-on-comment'].forEach(run_type => {
+          test(`running ${run_type} throws an error`, async () => {
+              await expect(() => terragrunt.run(run_type, null))
+                  .rejects
+                  .toThrowError('working-directory is not set');
+          });
+       });
+    });
+
+    describe('when working-directory is present', () => {
+        describe('and run_type is plan-for-apply', () => {
+            test('it calls terragrunt plan', async () => {
                 await terragrunt.run('plan-for-apply', 'working-directory');
 
                 let call = exec.getExecOutput.mock.calls[0];
@@ -28,28 +38,34 @@ describe('terragrunt.run', () => {
             });
         });
 
-        describe('and working directory is not present', () => {
-           test('it throws an error', async () => {
-               await expect(() => terragrunt.run('plan-for-apply'))
-                   .rejects
-                   .toThrowError('working-directory is not set');
-           });
+        describe('and run_type is apply-on-comment', () => {
+            test('it calls terragrunt apply', async () => {
+                await terragrunt.run('apply-on-comment', 'working-directory');
+
+                let call = exec.getExecOutput.mock.calls[0];
+
+                let [binary, [command, ...restOfArgs], options] = [...call];
+                expect(binary).toEqual("terragrunt");
+                expect(command).toEqual("apply");
+                expect(restOfArgs).toContain("-auto-approve");
+                expect(options.cwd).toEqual('working-directory');
+            });
         });
+
+        describe('and run_type is plan-for-destroy', () => {
+            test('it calls terragrunt plan -destroy', async () => {
+                await terragrunt.run('plan-for-destroy', 'working-directory');
+
+                let call = exec.getExecOutput.mock.calls[0];
+
+                let [binary, [command, ...restOfArgs], options] = [...call];
+
+                expect(binary).toEqual("terragrunt");
+                expect(command).toEqual("plan");
+                expect(restOfArgs).toContain("-destroy");
+                expect(options.cwd).toEqual('working-directory');
+            });
+        });
+
     });
-
-    describe('when run_type is apply-on-comment', () => {
-        describe('and working-directory is present', () => {
-           test('it calls terragrunt apply', async () => {
-               await terragrunt.run('apply-on-comment', 'working-directory');
-
-               let call = exec.getExecOutput.mock.calls[0];
-
-               let [binary, [command, ...restOfArgs], options] = [...call];
-               expect(binary).toEqual("terragrunt");
-               expect(command).toEqual("apply");
-               expect(restOfArgs).toContain("-auto-approve");
-               expect(options.cwd).toEqual('working-directory');
-           });
-        });
-    })
 });
