@@ -48,6 +48,20 @@ describe('.comment', () => {
             expect(gh.post_pr_comment).toHaveBeenLastCalledWith(plan_failure);
         });
     });
+
+    describe('apply-on-comment', () => {
+        test('when successful', async () => {
+            await call_pr_comment_with('apply-on-comment', successfulResult);
+
+            expect(gh.post_pr_comment).toHaveBeenLastCalledWith(apply_on_comment_message);
+        });
+
+        test('when not successful', async () => {
+            await pr.comment('apply-on-comment', 'working/path', failedResult);
+
+            expect(gh.post_pr_comment).toHaveBeenLastCalledWith(apply_failure);
+        });
+    });
 });
 
 let call_pr_comment_with = async function (run_type, result) {
@@ -96,4 +110,33 @@ stdout
 </details>
 
 Please review the plan above, ask code owners to approve this pull request, and then run terraform destroy by merging this PR
+`;
+
+const apply_on_comment_message =
+    `### Terraform \`apply\` (working/path)
+<details><summary>Show output</summary>
+
+\`\`\`text
+
+stdout
+
+\`\`\`
+
+</details>
+
+Please merge this pull request to keep Git base branch and terraform-managed resource state in sync
+`;
+
+const apply_failure =
+    `### Terraform \`apply\` failed (working/path)
+<details open><summary>Show output</summary>
+
+\`\`\`text
+
+stderrstdout
+
+\`\`\`
+</details>
+
+Please fix <code>terragrunt.hcl</code> inputs/module. Terraform plan is then automatically run again
 `;
