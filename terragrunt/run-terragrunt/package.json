@@ -4,8 +4,10 @@
   "description": "",
   "main": "lib/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "prepare": "ncc build lib/index.js -o dist --source-map --license licenses.txt"
+    "test": "jest",
+    "lint": "eslint lib",
+    "package": "ncc build lib/index.js -o dist --source-map --license licenses.txt",
+    "prepare": "npm run lint && npm run test && npm run package"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +21,7 @@
   },
   "devDependencies": {
     "@vercel/ncc": "^0.31.1",
+    "eslint": "^8.1.0",
     "jest": "^27.3.1"
   }
 }
