@@ -9,6 +9,7 @@ let run = async function () {
 
         let tf_default = core.getInput('default-terraform-version');
         let tg_default = core.getInput('default-terragrunt-version');
+        core.getInput('github-token', {required: true}); // Just for validation
         let relative_working_dir = core.getInput('working-directory', {required: true});
         let working_directory = `${process.cwd()}/${relative_working_dir}`;
         let run_type = core.getInput('run-type', {required: true});
