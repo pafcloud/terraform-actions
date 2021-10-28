@@ -1,14 +1,14 @@
 # Run Terragrunt 
 
- This action uses Terve to install Terraform and Terragrunt. It can be used to run plan,
-apply and destroy. 
+This action uses [terve](https://github.com/superblk/terve) to install Terraform and Terragrunt. 
+The action can be used to run plan, apply and destroy. 
 
- It will post the result of running the Terragrunt command as PR comments. 
+The action posts the result of running the Terragrunt command as PR comments. 
  
 ## Why does this action exist? 
- Previously we have been using the Hashicorp action to set up Terraform. This action creates a
+Previously we have been using the Hashicorp action to set up Terraform. This action creates a
 wrapper script around the Terraform binary. This wrapper exposes `stderror`, `stdout` and the 
-`exit_code` as GitHub actions outputs. This is useful, but it makes impossible to use the `dependency`
+`exit_code` as GitHub actions outputs. This is useful, but it makes impossible to use `dependency`
 blocks in Terragrunt modules. You can disable the wrapper but that makes really difficult to access 
 `stderror` and `stdout` as action outputs.
  
@@ -23,7 +23,7 @@ After making your changes, please compile by running `npm run prepare` and make 
 
 ### Git hooks
 
-There's git hook provided in [.githooks/pre-commit].
+There's a git hook provided in [.githooks/pre-commit].
 
 The hook will make sure that the code is compiled if any js file has been changed.
 
