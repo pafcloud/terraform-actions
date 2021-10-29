@@ -20,9 +20,12 @@
     "find-up": "^5.0.0"
   },
   "devDependencies": {
-    "@types/jest": "^27.0.2",
+    "@octokit/types": "^6.34.0",
+    "@types/chai": "^4.2.22",
+    "@types/mocha": "^9.0.0",
     "@types/node": "^16.11.6",
     "@typescript-eslint/eslint-plugin": "^5.2.0",
+    "@typescript-eslint/parser": "^5.2.0",
     "@vercel/ncc": "^0.31.1",
     "eslint": "^8.1.0",
     "eslint-plugin-jest": "^25.2.2",
