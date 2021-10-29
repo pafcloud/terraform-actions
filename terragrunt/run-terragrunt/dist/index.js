@@ -261,10 +261,9 @@ module.exports = { run };
 
 const io = __nccwpck_require__(7436);
 const { exec } = __nccwpck_require__(1514);
-const { chmodSync } = __nccwpck_require__(5747);
+const { chmodSync, readFileSync } = __nccwpck_require__(5747);
 const core = __nccwpck_require__(2186);
 const findUp = __nccwpck_require__(9486);
-const { readFileSync } = __nccwpck_require__(5747);
 const { chdir, env } = __nccwpck_require__(1765);
 
 let prepare = async function() {

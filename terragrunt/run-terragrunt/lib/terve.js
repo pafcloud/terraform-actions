@@ -1,9 +1,8 @@
 const io = require('@actions/io');
 const { exec } = require('@actions/exec');
-const { chmodSync } = require('fs');
+const { chmodSync, readFileSync } = require('fs');
 const core = require('@actions/core');
 const findUp = require('find-up');
-const { readFileSync } = require('fs');
 const { chdir, env } = require('process');
 
 let prepare = async function() {
@@ -60,7 +59,7 @@ let resolveVersions = async function(default_tf, default_tg) {
 }
 
 let setup = async function(working_directory, default_tf, default_tg) {
-    chdir(working_directory);
+    chdir(working_directory.absolute_path());
     let { terragrunt_version, terraform_version } = await resolveVersions(default_tf, default_tg);
     core.info(`Preparing to install terraform ${terraform_version} and terragrunt ${terragrunt_version}`);
     await exec("terve", ['install', 'tf', terraform_version]);

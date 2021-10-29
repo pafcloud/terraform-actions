@@ -2,6 +2,7 @@ const core = require('@actions/core');
 const terve = require('./terve');
 const terragrunt = require('./terragrunt');
 const pr = require('./pr')
+const WorkingDirectory = require('./working-directory');
 
 let run = async function () {
     try {
@@ -11,7 +12,7 @@ let run = async function () {
         let tg_default = core.getInput('default-terragrunt-version');
         core.getInput('github-token', {required: true}); // Just for validation
         let relative_working_dir = core.getInput('working-directory', {required: true});
-        let working_directory = `${process.cwd()}/${relative_working_dir}`;
+        let working_directory = new WorkingDirectory(process.cwd(), relative_working_dir);
         let run_type = core.getInput('run-type', {required: true});
 
         await terve.setup(working_directory, tf_default, tg_default);

@@ -12,7 +12,7 @@ let exec_terragrunt = function(args) {
         return await exec.getExecOutput(
             "terragrunt",
             args,
-            { cwd: working_directory, env: { ...process.env, ...{ TF_CLI_ARGS_init: '-no-color' } } });
+            { cwd: working_directory.absolute_path(), env: { ...process.env, ...{ TF_CLI_ARGS_init: '-no-color' } } });
     }
 }
 

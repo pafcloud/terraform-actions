@@ -4,9 +4,7 @@ const gh = require('./gh');
 const pr = require('./pr');
 
 beforeEach(() => {
-
     jest.clearAllMocks();
-
 });
 
 const successfulResult = {
@@ -60,6 +58,22 @@ describe('.comment', () => {
             await pr.comment('apply-on-comment', 'working/path', failedResult);
 
             expect(gh.post_pr_comment).toHaveBeenLastCalledWith(apply_failure);
+        });
+    });
+
+    describe('destroy-on-merge', () => {
+       test('when successful', async () => {
+          await call_pr_comment_with('destroy-on-merge', successfulResult);
+
+          expect(gh.post_pr_comment).toHaveBeenLastCalledWith(destroy_on_merge_comment);
+       });
+
+        test('when successful', async () => {
+            gh.base_sha.mockReturnValue(Promise.resolve('base_sha'));
+
+            await call_pr_comment_with('destroy-on-merge', failedResult);
+
+            expect(gh.post_pr_comment).toHaveBeenLastCalledWith(destroy_on_merge_failure_comment);
         });
     });
 });
@@ -139,4 +153,32 @@ stderrstdout
 </details>
 
 Please fix <code>terragrunt.hcl</code> inputs/module. Terraform plan is then automatically run again
+`;
+
+const destroy_on_merge_comment =
+    `### Terraform \`destroy\` (working/path)
+<details><summary>Show output</summary>
+
+\`\`\`text
+
+stdout
+
+\`\`\`
+
+</details>
+`;
+
+const destroy_on_merge_failure_comment =
+    `### Terraform \`destroy\` failed (working/path)
+<details open><summary>Show output</summary>
+
+\`\`\`text
+
+stderrstdout
+
+\`\`\`
+
+</details>
+
+Please run terraform destroy manually (do \`git checkout base_sha\` to restore \`terragrunt.hcl\`)
 `;
