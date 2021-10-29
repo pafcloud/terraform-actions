@@ -7,15 +7,11 @@ require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 const github = __nccwpck_require__(5438);
 const core = __nccwpck_require__(2186);
 
-const run = async function(body) {
+const post_pr_comment = async function(body) {
     const token = core.getInput('github-token', { required: true });
-
     const octokit = github.getOctokit(token)
-
     const context = github.context;
-
     const issue_number = context.issue.number;
-
     try {
         await octokit.rest.issues.createComment({
             ...context.repo,
@@ -27,7 +23,21 @@ const run = async function(body) {
     }
 };
 
-module.exports = { "post_pr_comment":  run }
+const base_sha = async function() {
+    const token = core.getInput('github-token', { required: true });
+    const octokit = github.getOctokit(token)
+    const context = github.context;
+    const pull_number = context.issue.number;
+
+    try {
+        let { data: { base: { sha } }} = await octokit.rest.pulls.get({ ...context.repo, pull_number: pull_number});
+        return sha
+    } catch (e) {
+        throw new Error(`Failed to post pull request comment ${e}`);
+    }
+}
+
+module.exports = {post_pr_comment, base_sha}
 
 
 /***/ }),
@@ -115,17 +125,47 @@ Please merge this pull request to keep Git base branch and terraform-managed res
 `;
 };
 
+let destroy_on_merge_message = (working_path, plan) => {
+    return `### Terraform \`destroy\` (${working_path})
+<details><summary>Show output</summary>
+
+\`\`\`text
+
+${plan}
+
+\`\`\`
+
+</details>
+`;
+};
+
+let destroy_on_merge_failure_message = (working_path, plan, base_sha) => {
+    return `### Terraform \`destroy\` failed (${working_path})
+<details open><summary>Show output</summary>
+
+\`\`\`text
+
+${plan}
+
+\`\`\`
+
+</details>
+
+Please run terraform destroy manually (do \`git checkout ${base_sha}\` to restore \`terragrunt.hcl\`)
+`;
+};
+
 let no_command = function (run_type) {
     return async () => { throw new Error(`Invalid run-type ${run_type}`) };
 }
 
 let run_with_messages = function(success, failure) {
-    return async (working_path, result) => {
+    return async (working_path, result, base_sha) => {
       let body;
       if (result.exitCode === 0) {
-          body = success(working_path, result);
+          body = success(working_path, result, base_sha);
       } else {
-          body = failure(working_path, result);
+          body = failure(working_path, result, base_sha);
       }
       await gh.post_pr_comment(body);
     };
@@ -146,16 +186,23 @@ let apply_on_comment = run_with_messages(
     (working_path, result) => apply_failure_message(working_path, result.stderr + result.stdout),
 );
 
+let destroy_on_merge = run_with_messages(
+        (working_path, result) => destroy_on_merge_message(working_path, result.stdout),
+        (working_path, result, base_sha) => destroy_on_merge_failure_message(working_path, result.stderr + result.stdout, base_sha),
+);
+
 let commands = {
     'plan-for-apply': plan_for_apply,
     'plan-for-destroy': plan_for_destroy,
-    'apply-on-comment': apply_on_comment
+    'apply-on-comment': apply_on_comment,
+    'destroy-on-merge': destroy_on_merge
 }
 
 let comment = async function (run_type, working_path, run_result) {
     try {
+        let base_sha = await gh.base_sha();
         let command = commands[run_type] || no_command(run_type);
-        return await command(working_path, run_result);
+        return await command(working_path, run_result, base_sha);
     } catch (e) {
         throw new Error(e);
     }
@@ -183,7 +230,7 @@ let exec_terragrunt = function(args) {
         return await exec.getExecOutput(
             "terragrunt",
             args,
-            { cwd: working_directory, env: { ...process.env, ...{ TF_CLI_ARGS_init: '-no-color' } } });
+            { cwd: working_directory.absolute_path(), env: { ...process.env, ...{ TF_CLI_ARGS_init: '-no-color' } } });
     }
 }
 
@@ -274,7 +321,7 @@ let resolveVersions = async function(default_tf, default_tg) {
 }
 
 let setup = async function(working_directory, default_tf, default_tg) {
-    chdir(working_directory);
+    chdir(working_directory.absolute_path());
     let { terragrunt_version, terraform_version } = await resolveVersions(default_tf, default_tg);
     core.info(`Preparing to install terraform ${terraform_version} and terragrunt ${terragrunt_version}`);
     await exec("terve", ['install', 'tf', terraform_version]);
@@ -284,6 +331,25 @@ let setup = async function(working_directory, default_tf, default_tg) {
 }
 
 module.exports = { install, setup };
+
+
+/***/ }),
+
+/***/ 6636:
+/***/ ((module) => {
+
+class WorkingDirectory {
+    constructor(workspace, relative_path) {
+        this.workspace = workspace;
+        this.relative_path = relative_path;
+    }
+
+    absolute_path() {
+        return `${this.workspace}/${this.relative_path}`
+    }
+}
+
+module.exports = WorkingDirectory;
 
 
 /***/ }),
@@ -10448,6 +10514,7 @@ const core = __nccwpck_require__(2186);
 const terve = __nccwpck_require__(3031);
 const terragrunt = __nccwpck_require__(4922);
 const pr = __nccwpck_require__(515)
+const WorkingDirectory = __nccwpck_require__(6636);
 
 let run = async function () {
     try {
@@ -10457,7 +10524,7 @@ let run = async function () {
         let tg_default = core.getInput('default-terragrunt-version');
         core.getInput('github-token', {required: true}); // Just for validation
         let relative_working_dir = core.getInput('working-directory', {required: true});
-        let working_directory = `${process.cwd()}/${relative_working_dir}`;
+        let working_directory = new WorkingDirectory(process.cwd(), relative_working_dir);
         let run_type = core.getInput('run-type', {required: true});
 
         await terve.setup(working_directory, tf_default, tg_default);
