@@ -1,9 +1,9 @@
-const io = require('@actions/io');
-const { exec } = require('@actions/exec');
-const { chmodSync, readFileSync } = require('fs');
-const core = require('@actions/core');
-const findUp = require('find-up');
-const { chdir, env } = require('process');
+import * as io from '@actions/io';
+import { exec } from '@actions/exec';
+import { chmodSync, readFileSync } from 'fs';
+import * as core from '@actions/core';
+import * as findUp from 'find-up';
+import { chdir, env } from 'process';
 
 let prepare = async function() {
     let terve_etc = `${env.HOME}/.terve/etc`;
@@ -17,7 +17,7 @@ let prepare = async function() {
     chmodSync(hashicorp_key, '0444');
 }
 
-let install = async function(version) {
+export let install = async function(version) {
     await prepare();
 
     let base_url = 'https://github.com/superblk/terve/releases/download';
@@ -27,7 +27,7 @@ let install = async function(version) {
     };
 
     let download = async function (artifact) {
-        await exec(`curl -L -o ${artifact} ${get_artifact_url(artifact, version)}`);
+        await exec(`curl -L -o ${artifact} ${get_artifact_url(artifact)}`);
     }
 
     await Promise.all([
@@ -45,7 +45,7 @@ let install = async function(version) {
 }
 
 let readFileOrDefault = async function(path, default_value) {
-    let file = await findUp(path);
+    let file = await findUp.default(path); // This looks funky b/c of some kind of incompatibility between this version of findUp and ES modules
     if(!file) {
         return default_value;
     }
@@ -58,7 +58,7 @@ let resolveVersions = async function(default_tf, default_tg) {
     return { terraform_version, terragrunt_version }
 }
 
-let setup = async function(working_directory, default_tf, default_tg) {
+export let setup = async function(working_directory, default_tf, default_tg) {
     chdir(working_directory.absolute_path());
     let { terragrunt_version, terraform_version } = await resolveVersions(default_tf, default_tg);
     core.info(`Preparing to install terraform ${terraform_version} and terragrunt ${terragrunt_version}`);
@@ -67,5 +67,3 @@ let setup = async function(working_directory, default_tf, default_tg) {
     await exec("terve", ['select', 'tf', terraform_version]);
     await exec("terve", ['select', 'tg', terragrunt_version]);
 }
-
-module.exports = { install, setup };

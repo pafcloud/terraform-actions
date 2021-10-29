@@ -1,7 +1,7 @@
-const github = require('@actions/github');
-const core = require('@actions/core');
+import * as github from '@actions/github';
+import * as core from '@actions/core';
 
-const post_pr_comment = async function(body) {
+export const post_pr_comment = async function(body) {
     const token = core.getInput('github-token', { required: true });
     const octokit = github.getOctokit(token)
     const context = github.context;
@@ -17,7 +17,7 @@ const post_pr_comment = async function(body) {
     }
 };
 
-const base_sha = async function() {
+export const base_sha = async function() {
     const token = core.getInput('github-token', { required: true });
     const octokit = github.getOctokit(token)
     const context = github.context;
@@ -29,6 +29,4 @@ const base_sha = async function() {
     } catch (e) {
         throw new Error(`Failed to post pull request comment ${e}`);
     }
-}
-
-module.exports = {post_pr_comment, base_sha}
+};

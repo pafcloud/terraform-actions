@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jest",
     "lint": "eslint lib",
-    "package": "ncc build lib/index.js -o dist --source-map --license licenses.txt",
+    "package": "ncc build lib/index.ts -o dist --source-map --license licenses.txt",
     "prepare": "npm run lint && npm run test && npm run package"
   },
   "keywords": [],
@@ -20,8 +20,14 @@
     "find-up": "^5.0.0"
   },
   "devDependencies": {
+    "@types/jest": "^27.0.2",
+    "@types/node": "^16.11.6",
+    "@typescript-eslint/eslint-plugin": "^5.2.0",
     "@vercel/ncc": "^0.31.1",
     "eslint": "^8.1.0",
-    "jest": "^27.3.1"
+    "eslint-plugin-jest": "^25.2.2",
+    "jest": "^27.3.1",
+    "ts-jest": "^27.0.7",
+    "typescript": "^4.4.4"
   }
 }

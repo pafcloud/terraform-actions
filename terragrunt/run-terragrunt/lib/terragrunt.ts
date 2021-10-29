@@ -1,4 +1,4 @@
-const exec = require('@actions/exec');
+import * as exec from '@actions/exec';
 
 let no_command = function (run_type) {
     return async () => { throw new Error(`Invalid run-type ${run_type}`) };
@@ -28,9 +28,7 @@ let commands = {
     'plan-for-destroy': plan_for_destroy
 }
 
-let run = async function (run_type, working_directory) {
+export let run = async function (run_type, working_directory) {
     let command = commands[run_type] || no_command(run_type);
     return await command(working_directory);
 }
-
-module.exports = { run };

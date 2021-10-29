@@ -1,4 +1,4 @@
-const gh = require('./gh');
+import * as gh from './gh';
 
 let plan_for_apply_message = (working_path, plan) => {
     return `### Terraform \`plan\` (${working_path})
@@ -151,7 +151,7 @@ let commands = {
     'destroy-on-merge': destroy_on_merge
 }
 
-let comment = async function (run_type, working_path, run_result) {
+export let comment = async function (run_type, working_path, run_result) {
     try {
         let base_sha = await gh.base_sha();
         let command = commands[run_type] || no_command(run_type);
@@ -160,5 +160,3 @@ let comment = async function (run_type, working_path, run_result) {
         throw new Error(e);
     }
 }
-
-module.exports = { comment };

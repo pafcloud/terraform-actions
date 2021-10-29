@@ -1,8 +1,8 @@
-const core = require('@actions/core');
-const terve = require('./terve');
-const terragrunt = require('./terragrunt');
-const pr = require('./pr')
-const WorkingDirectory = require('./working-directory');
+import * as core from '@actions/core';
+import * as terve from './terve';
+import * as terragrunt from './terragrunt';
+import * as pr from './pr';
+import WorkingDirectory from './working-directory';
 
 let run = async function () {
     try {

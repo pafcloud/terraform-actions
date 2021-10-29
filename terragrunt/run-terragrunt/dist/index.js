@@ -1,358 +1,6 @@
 require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 4027:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const github = __nccwpck_require__(5438);
-const core = __nccwpck_require__(2186);
-
-const post_pr_comment = async function(body) {
-    const token = core.getInput('github-token', { required: true });
-    const octokit = github.getOctokit(token)
-    const context = github.context;
-    const issue_number = context.issue.number;
-    try {
-        await octokit.rest.issues.createComment({
-            ...context.repo,
-            issue_number,
-            body,
-        });
-    } catch (e) {
-        throw new Error(`Failed to post pull request comment ${e}`);
-    }
-};
-
-const base_sha = async function() {
-    const token = core.getInput('github-token', { required: true });
-    const octokit = github.getOctokit(token)
-    const context = github.context;
-    const pull_number = context.issue.number;
-
-    try {
-        let { data: { base: { sha } }} = await octokit.rest.pulls.get({ ...context.repo, pull_number: pull_number});
-        return sha
-    } catch (e) {
-        throw new Error(`Failed to post pull request comment ${e}`);
-    }
-}
-
-module.exports = {post_pr_comment, base_sha}
-
-
-/***/ }),
-
-/***/ 515:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const gh = __nccwpck_require__(4027);
-
-let plan_for_apply_message = (working_path, plan) => {
-    return `### Terraform \`plan\` (${working_path})
-<details><summary>Show output</summary>
-
-\`\`\`text
-
-${plan}
-
-\`\`\`
-
-</details>
-
-Please review the plan above, ask code owners to approve this pull request, and then run terraform apply by commenting <code>/apply</code> or merging this PR
-`;
-};
-
-let plan_for_apply_failure_message = (working_path, plan) => {
-    return `### Terraform \`plan\` failed (${working_path})
-<details open><summary>Show output</summary>
-
-\`\`\`text
-
-${plan}
-
-\`\`\`
-</details>
-
-Please fix <code>terragrunt.hcl</code> inputs/module. Terraform plan is then automatically run again
-`;
-};
-
-let plan_for_destroy_message = (working_path, plan) => {
-    return `### Terraform \`plan\` (${working_path})
-<details><summary>Show output</summary>
-
-\`\`\`text
-
-${plan}
-
-\`\`\`
-
-</details>
-
-Please review the plan above, ask code owners to approve this pull request, and then run terraform destroy by merging this PR
-`;
-};
-
-let apply_failure_message = (working_path, plan) => {
-    return `### Terraform \`apply\` failed (${working_path})
-<details open><summary>Show output</summary>
-
-\`\`\`text
-
-${plan}
-
-\`\`\`
-</details>
-
-Please fix <code>terragrunt.hcl</code> inputs/module. Terraform plan is then automatically run again
-`;
-};
-
-let apply_on_comment_message = (working_path, plan) => {
-    return `### Terraform \`apply\` (${working_path})
-<details><summary>Show output</summary>
-
-\`\`\`text
-
-${plan}
-
-\`\`\`
-
-</details>
-
-Please merge this pull request to keep Git base branch and terraform-managed resource state in sync
-`;
-};
-
-let destroy_on_merge_message = (working_path, plan) => {
-    return `### Terraform \`destroy\` (${working_path})
-<details><summary>Show output</summary>
-
-\`\`\`text
-
-${plan}
-
-\`\`\`
-
-</details>
-`;
-};
-
-let destroy_on_merge_failure_message = (working_path, plan, base_sha) => {
-    return `### Terraform \`destroy\` failed (${working_path})
-<details open><summary>Show output</summary>
-
-\`\`\`text
-
-${plan}
-
-\`\`\`
-
-</details>
-
-Please run terraform destroy manually (do \`git checkout ${base_sha}\` to restore \`terragrunt.hcl\`)
-`;
-};
-
-let no_command = function (run_type) {
-    return async () => { throw new Error(`Invalid run-type ${run_type}`) };
-}
-
-let run_with_messages = function(success, failure) {
-    return async (working_path, result, base_sha) => {
-      let body;
-      if (result.exitCode === 0) {
-          body = success(working_path, result, base_sha);
-      } else {
-          body = failure(working_path, result, base_sha);
-      }
-      await gh.post_pr_comment(body);
-    };
-}
-
-let plan_for_apply = run_with_messages(
-    (working_path, result) => plan_for_apply_message(working_path, result.stdout),
-    (working_path, result) => plan_for_apply_failure_message(working_path, result.stderr + result.stdout)
-);
-
-let plan_for_destroy = run_with_messages(
-    (working_path, result) => plan_for_destroy_message(working_path, result.stdout),
-    (working_path, result) => plan_for_apply_failure_message(working_path, result.stderr + result.stdout)
-)
-
-let apply_on_comment = run_with_messages(
-    (working_path, result) => apply_on_comment_message(working_path, result.stdout),
-    (working_path, result) => apply_failure_message(working_path, result.stderr + result.stdout),
-);
-
-let destroy_on_merge = run_with_messages(
-        (working_path, result) => destroy_on_merge_message(working_path, result.stdout),
-        (working_path, result, base_sha) => destroy_on_merge_failure_message(working_path, result.stderr + result.stdout, base_sha),
-);
-
-let commands = {
-    'plan-for-apply': plan_for_apply,
-    'plan-for-destroy': plan_for_destroy,
-    'apply-on-comment': apply_on_comment,
-    'destroy-on-merge': destroy_on_merge
-}
-
-let comment = async function (run_type, working_path, run_result) {
-    try {
-        let base_sha = await gh.base_sha();
-        let command = commands[run_type] || no_command(run_type);
-        return await command(working_path, run_result, base_sha);
-    } catch (e) {
-        throw new Error(e);
-    }
-}
-
-module.exports = { comment };
-
-
-/***/ }),
-
-/***/ 4922:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const exec = __nccwpck_require__(1514);
-
-let no_command = function (run_type) {
-    return async () => { throw new Error(`Invalid run-type ${run_type}`) };
-}
-
-let exec_terragrunt = function(args) {
-    return async (working_directory) => {
-        if (!working_directory) {
-            throw new TypeError('working-directory is not set');
-        }
-        return await exec.getExecOutput(
-            "terragrunt",
-            args,
-            { cwd: working_directory.absolute_path(), env: { ...process.env, ...{ TF_CLI_ARGS_init: '-no-color' } } });
-    }
-}
-
-let plan_for_apply = exec_terragrunt(['plan', '-no-color', '-input=false']);
-
-let plan_for_destroy = exec_terragrunt(['plan', '-destroy', '-no-color', '-input=false']);
-
-let apply = exec_terragrunt(['apply', '-no-color', '-auto-approve', '-input=false']);
-
-let commands = {
-    'plan-for-apply': plan_for_apply,
-    'apply-on-comment': apply,
-    'plan-for-destroy': plan_for_destroy
-}
-
-let run = async function (run_type, working_directory) {
-    let command = commands[run_type] || no_command(run_type);
-    return await command(working_directory);
-}
-
-module.exports = { run };
-
-
-/***/ }),
-
-/***/ 3031:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const io = __nccwpck_require__(7436);
-const { exec } = __nccwpck_require__(1514);
-const { chmodSync, readFileSync } = __nccwpck_require__(5747);
-const core = __nccwpck_require__(2186);
-const findUp = __nccwpck_require__(9486);
-const { chdir, env } = __nccwpck_require__(1765);
-
-let prepare = async function() {
-    let terve_etc = `${env.HOME}/.terve/etc`;
-    let hashicorp_key = `${terve_etc}/terraform.asc`;
-
-    await io.mkdirP(terve_etc);
-
-    await exec('gpg --keyserver keyserver.ubuntu.com --recv-keys 72D7468F');
-    await exec(`gpg --export -a --output ${hashicorp_key} 72D7468F`);
-
-    chmodSync(hashicorp_key, '0444');
-}
-
-let install = async function(version) {
-    await prepare();
-
-    let base_url = 'https://github.com/superblk/terve/releases/download';
-
-    let get_artifact_url = function (artifact) {
-        return `${base_url}/v${version}/${artifact}`
-    };
-
-    let download = async function (artifact) {
-        await exec(`curl -L -o ${artifact} ${get_artifact_url(artifact, version)}`);
-    }
-
-    await Promise.all([
-        download('terve_linux_amd64'),
-        download('SHA256SUMS')]);
-
-    await exec('sha256sum -c --ignore-missing SHA256SUMS');
-
-    await io.cp('terve_linux_amd64', '/usr/local/bin/terve');
-    chmodSync('/usr/local/bin/terve', '0700');
-
-    await exec("terve", ['--bootstrap']);
-
-    core.addPath(`${env.HOME}/.terve/bin`)
-}
-
-let readFileOrDefault = async function(path, default_value) {
-    let file = await findUp(path);
-    if(!file) {
-        return default_value;
-    }
-    return readFileSync(file, 'utf-8').trim() || default_value.trim();
-}
-
-let resolveVersions = async function(default_tf, default_tg) {
-    let terraform_version = await readFileOrDefault('.terraform-version', default_tf);
-    let terragrunt_version = await readFileOrDefault('.terragrunt-version', default_tg);
-    return { terraform_version, terragrunt_version }
-}
-
-let setup = async function(working_directory, default_tf, default_tg) {
-    chdir(working_directory.absolute_path());
-    let { terragrunt_version, terraform_version } = await resolveVersions(default_tf, default_tg);
-    core.info(`Preparing to install terraform ${terraform_version} and terragrunt ${terragrunt_version}`);
-    await exec("terve", ['install', 'tf', terraform_version]);
-    await exec("terve", ['install', 'tg', terragrunt_version]);
-    await exec("terve", ['select', 'tf', terraform_version]);
-    await exec("terve", ['select', 'tg', terragrunt_version]);
-}
-
-module.exports = { install, setup };
-
-
-/***/ }),
-
-/***/ 6636:
-/***/ ((module) => {
-
-class WorkingDirectory {
-    constructor(workspace, relative_path) {
-        this.workspace = workspace;
-        this.relative_path = relative_path;
-    }
-
-    absolute_path() {
-        return `${this.workspace}/${this.relative_path}`
-    }
-}
-
-module.exports = WorkingDirectory;
-
-
-/***/ }),
-
 /***/ 7351:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -10396,14 +10044,6 @@ module.exports = require("path");
 
 /***/ }),
 
-/***/ 1765:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("process");
-
-/***/ }),
-
 /***/ 4213:
 /***/ ((module) => {
 
@@ -10501,42 +10141,649 @@ module.exports = require("zlib");
 /******/ 	}
 /******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/compat get default export */
+/******/ 	(() => {
+/******/ 		// getDefaultExport function for compatibility with non-harmony modules
+/******/ 		__nccwpck_require__.n = (module) => {
+/******/ 			var getter = module && module.__esModule ?
+/******/ 				() => (module['default']) :
+/******/ 				() => (module);
+/******/ 			__nccwpck_require__.d(getter, { a: getter });
+/******/ 			return getter;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__nccwpck_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__nccwpck_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
 (() => {
-const core = __nccwpck_require__(2186);
-const terve = __nccwpck_require__(3031);
-const terragrunt = __nccwpck_require__(4922);
-const pr = __nccwpck_require__(515)
-const WorkingDirectory = __nccwpck_require__(6636);
+"use strict";
+// ESM COMPAT FLAG
+__nccwpck_require__.r(__webpack_exports__);
 
-let run = async function () {
-    try {
-        await terve.install("0.6.1");
-
-        let tf_default = core.getInput('default-terraform-version');
-        let tg_default = core.getInput('default-terragrunt-version');
-        core.getInput('github-token', {required: true}); // Just for validation
-        let relative_working_dir = core.getInput('working-directory', {required: true});
-        let working_directory = new WorkingDirectory(process.cwd(), relative_working_dir);
-        let run_type = core.getInput('run-type', {required: true});
-
-        await terve.setup(working_directory, tf_default, tg_default);
-
-        let result = await terragrunt.run(run_type, working_directory);
-
-        await pr.comment(run_type, working_directory, result);
-    } catch (error) {
-        core.setFailed(error.message);
+// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
+var core = __nccwpck_require__(2186);
+// EXTERNAL MODULE: ./node_modules/@actions/io/lib/io.js
+var io = __nccwpck_require__(7436);
+// EXTERNAL MODULE: ./node_modules/@actions/exec/lib/exec.js
+var exec = __nccwpck_require__(1514);
+// EXTERNAL MODULE: external "fs"
+var external_fs_ = __nccwpck_require__(5747);
+// EXTERNAL MODULE: ./node_modules/find-up/index.js
+var find_up = __nccwpck_require__(9486);
+var find_up_default = /*#__PURE__*/__nccwpck_require__.n(find_up);
+;// CONCATENATED MODULE: external "process"
+const external_process_namespaceObject = require("process");
+;// CONCATENATED MODULE: ./lib/terve.ts
+var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (undefined && undefined.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
 
-run();
+
+
+
+
+
+var prepare = function () {
+    return __awaiter(this, void 0, void 0, function () {
+        var terve_etc, hashicorp_key;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    terve_etc = external_process_namespaceObject.env.HOME + "/.terve/etc";
+                    hashicorp_key = terve_etc + "/terraform.asc";
+                    return [4 /*yield*/, io.mkdirP(terve_etc)];
+                case 1:
+                    _a.sent();
+                    return [4 /*yield*/, (0,exec.exec)('gpg --keyserver keyserver.ubuntu.com --recv-keys 72D7468F')];
+                case 2:
+                    _a.sent();
+                    return [4 /*yield*/, (0,exec.exec)("gpg --export -a --output " + hashicorp_key + " 72D7468F")];
+                case 3:
+                    _a.sent();
+                    (0,external_fs_.chmodSync)(hashicorp_key, '0444');
+                    return [2 /*return*/];
+            }
+        });
+    });
+};
+var install = function (version) {
+    return __awaiter(this, void 0, void 0, function () {
+        var base_url, get_artifact_url, download;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, prepare()];
+                case 1:
+                    _a.sent();
+                    base_url = 'https://github.com/superblk/terve/releases/download';
+                    get_artifact_url = function (artifact) {
+                        return base_url + "/v" + version + "/" + artifact;
+                    };
+                    download = function (artifact) {
+                        return __awaiter(this, void 0, void 0, function () {
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0: return [4 /*yield*/, (0,exec.exec)("curl -L -o " + artifact + " " + get_artifact_url(artifact))];
+                                    case 1:
+                                        _a.sent();
+                                        return [2 /*return*/];
+                                }
+                            });
+                        });
+                    };
+                    return [4 /*yield*/, Promise.all([
+                            download('terve_linux_amd64'),
+                            download('SHA256SUMS')
+                        ])];
+                case 2:
+                    _a.sent();
+                    return [4 /*yield*/, (0,exec.exec)('sha256sum -c --ignore-missing SHA256SUMS')];
+                case 3:
+                    _a.sent();
+                    return [4 /*yield*/, io.cp('terve_linux_amd64', '/usr/local/bin/terve')];
+                case 4:
+                    _a.sent();
+                    (0,external_fs_.chmodSync)('/usr/local/bin/terve', '0700');
+                    return [4 /*yield*/, (0,exec.exec)("terve", ['--bootstrap'])];
+                case 5:
+                    _a.sent();
+                    core.addPath(external_process_namespaceObject.env.HOME + "/.terve/bin");
+                    return [2 /*return*/];
+            }
+        });
+    });
+};
+var readFileOrDefault = function (path, default_value) {
+    return __awaiter(this, void 0, void 0, function () {
+        var file;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, find_up_default()(path)];
+                case 1:
+                    file = _a.sent();
+                    if (!file) {
+                        return [2 /*return*/, default_value];
+                    }
+                    return [2 /*return*/, (0,external_fs_.readFileSync)(file, 'utf-8').trim() || default_value.trim()];
+            }
+        });
+    });
+};
+var resolveVersions = function (default_tf, default_tg) {
+    return __awaiter(this, void 0, void 0, function () {
+        var terraform_version, terragrunt_version;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, readFileOrDefault('.terraform-version', default_tf)];
+                case 1:
+                    terraform_version = _a.sent();
+                    return [4 /*yield*/, readFileOrDefault('.terragrunt-version', default_tg)];
+                case 2:
+                    terragrunt_version = _a.sent();
+                    return [2 /*return*/, { terraform_version: terraform_version, terragrunt_version: terragrunt_version }];
+            }
+        });
+    });
+};
+var setup = function (working_directory, default_tf, default_tg) {
+    return __awaiter(this, void 0, void 0, function () {
+        var terragrunt_version, terraform_version;
+        var _a;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    (0,external_process_namespaceObject.chdir)(working_directory.absolute_path());
+                    return [4 /*yield*/, resolveVersions(default_tf, default_tg)];
+                case 1:
+                    terragrunt_version = (_a = _b.sent(), _a.terragrunt_version), terraform_version = _a.terraform_version;
+                    core.info("Preparing to install terraform " + terraform_version + " and terragrunt " + terragrunt_version);
+                    return [4 /*yield*/, (0,exec.exec)("terve", ['install', 'tf', terraform_version])];
+                case 2:
+                    _b.sent();
+                    return [4 /*yield*/, (0,exec.exec)("terve", ['install', 'tg', terragrunt_version])];
+                case 3:
+                    _b.sent();
+                    return [4 /*yield*/, (0,exec.exec)("terve", ['select', 'tf', terraform_version])];
+                case 4:
+                    _b.sent();
+                    return [4 /*yield*/, (0,exec.exec)("terve", ['select', 'tg', terragrunt_version])];
+                case 5:
+                    _b.sent();
+                    return [2 /*return*/];
+            }
+        });
+    });
+};
+
+;// CONCATENATED MODULE: ./lib/terragrunt.ts
+var __assign = (undefined && undefined.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var terragrunt_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var terragrunt_generator = (undefined && undefined.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+
+var no_command = function (run_type) {
+    var _this = this;
+    return function () { return terragrunt_awaiter(_this, void 0, void 0, function () { return terragrunt_generator(this, function (_a) {
+        throw new Error("Invalid run-type " + run_type);
+    }); }); };
+};
+var exec_terragrunt = function (args) {
+    var _this = this;
+    return function (working_directory) { return terragrunt_awaiter(_this, void 0, void 0, function () {
+        return terragrunt_generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    if (!working_directory) {
+                        throw new TypeError('working-directory is not set');
+                    }
+                    return [4 /*yield*/, exec.getExecOutput("terragrunt", args, { cwd: working_directory.absolute_path(), env: __assign(__assign({}, process.env), { TF_CLI_ARGS_init: '-no-color' }) })];
+                case 1: return [2 /*return*/, _a.sent()];
+            }
+        });
+    }); };
+};
+var plan_for_apply = exec_terragrunt(['plan', '-no-color', '-input=false']);
+var plan_for_destroy = exec_terragrunt(['plan', '-destroy', '-no-color', '-input=false']);
+var apply = exec_terragrunt(['apply', '-no-color', '-auto-approve', '-input=false']);
+var commands = {
+    'plan-for-apply': plan_for_apply,
+    'apply-on-comment': apply,
+    'plan-for-destroy': plan_for_destroy
+};
+var run = function (run_type, working_directory) {
+    return terragrunt_awaiter(this, void 0, void 0, function () {
+        var command;
+        return terragrunt_generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    command = commands[run_type] || no_command(run_type);
+                    return [4 /*yield*/, command(working_directory)];
+                case 1: return [2 /*return*/, _a.sent()];
+            }
+        });
+    });
+};
+
+// EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
+var github = __nccwpck_require__(5438);
+;// CONCATENATED MODULE: ./lib/gh.ts
+var gh_assign = (undefined && undefined.__assign) || function () {
+    gh_assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return gh_assign.apply(this, arguments);
+};
+var gh_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var gh_generator = (undefined && undefined.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+
+
+var post_pr_comment = function (body) {
+    return gh_awaiter(this, void 0, void 0, function () {
+        var token, octokit, context, issue_number, e_1;
+        return gh_generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    token = core.getInput('github-token', { required: true });
+                    octokit = github.getOctokit(token);
+                    context = github.context;
+                    issue_number = context.issue.number;
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 3, , 4]);
+                    return [4 /*yield*/, octokit.rest.issues.createComment(gh_assign(gh_assign({}, context.repo), { issue_number: issue_number, body: body }))];
+                case 2:
+                    _a.sent();
+                    return [3 /*break*/, 4];
+                case 3:
+                    e_1 = _a.sent();
+                    throw new Error("Failed to post pull request comment " + e_1);
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
+};
+var gh_base_sha = function () {
+    return gh_awaiter(this, void 0, void 0, function () {
+        var token, octokit, context, pull_number, sha, e_2;
+        return gh_generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    token = core.getInput('github-token', { required: true });
+                    octokit = github.getOctokit(token);
+                    context = github.context;
+                    pull_number = context.issue.number;
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 3, , 4]);
+                    return [4 /*yield*/, octokit.rest.pulls.get(gh_assign(gh_assign({}, context.repo), { pull_number: pull_number }))];
+                case 2:
+                    sha = (_a.sent()).data.base.sha;
+                    return [2 /*return*/, sha];
+                case 3:
+                    e_2 = _a.sent();
+                    throw new Error("Failed to post pull request comment " + e_2);
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
+};
+
+;// CONCATENATED MODULE: ./lib/pr.ts
+var pr_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var pr_generator = (undefined && undefined.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+
+var plan_for_apply_message = function (working_path, plan) {
+    return "### Terraform `plan` (" + working_path + ")\n<details><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n\n</details>\n\nPlease review the plan above, ask code owners to approve this pull request, and then run terraform apply by commenting <code>/apply</code> or merging this PR\n";
+};
+var plan_for_apply_failure_message = function (working_path, plan) {
+    return "### Terraform `plan` failed (" + working_path + ")\n<details open><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n</details>\n\nPlease fix <code>terragrunt.hcl</code> inputs/module. Terraform plan is then automatically run again\n";
+};
+var plan_for_destroy_message = function (working_path, plan) {
+    return "### Terraform `plan` (" + working_path + ")\n<details><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n\n</details>\n\nPlease review the plan above, ask code owners to approve this pull request, and then run terraform destroy by merging this PR\n";
+};
+var apply_failure_message = function (working_path, plan) {
+    return "### Terraform `apply` failed (" + working_path + ")\n<details open><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n</details>\n\nPlease fix <code>terragrunt.hcl</code> inputs/module. Terraform plan is then automatically run again\n";
+};
+var apply_on_comment_message = function (working_path, plan) {
+    return "### Terraform `apply` (" + working_path + ")\n<details><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n\n</details>\n\nPlease merge this pull request to keep Git base branch and terraform-managed resource state in sync\n";
+};
+var destroy_on_merge_message = function (working_path, plan) {
+    return "### Terraform `destroy` (" + working_path + ")\n<details><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n\n</details>\n";
+};
+var destroy_on_merge_failure_message = function (working_path, plan, base_sha) {
+    return "### Terraform `destroy` failed (" + working_path + ")\n<details open><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n\n</details>\n\nPlease run terraform destroy manually (do `git checkout " + base_sha + "` to restore `terragrunt.hcl`)\n";
+};
+var pr_no_command = function (run_type) {
+    var _this = this;
+    return function () { return pr_awaiter(_this, void 0, void 0, function () { return pr_generator(this, function (_a) {
+        throw new Error("Invalid run-type " + run_type);
+    }); }); };
+};
+var run_with_messages = function (success, failure) {
+    var _this = this;
+    return function (working_path, result, base_sha) { return pr_awaiter(_this, void 0, void 0, function () {
+        var body;
+        return pr_generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    if (result.exitCode === 0) {
+                        body = success(working_path, result, base_sha);
+                    }
+                    else {
+                        body = failure(working_path, result, base_sha);
+                    }
+                    return [4 /*yield*/, post_pr_comment(body)];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/];
+            }
+        });
+    }); };
+};
+var pr_plan_for_apply = run_with_messages(function (working_path, result) { return plan_for_apply_message(working_path, result.stdout); }, function (working_path, result) { return plan_for_apply_failure_message(working_path, result.stderr + result.stdout); });
+var pr_plan_for_destroy = run_with_messages(function (working_path, result) { return plan_for_destroy_message(working_path, result.stdout); }, function (working_path, result) { return plan_for_apply_failure_message(working_path, result.stderr + result.stdout); });
+var apply_on_comment = run_with_messages(function (working_path, result) { return apply_on_comment_message(working_path, result.stdout); }, function (working_path, result) { return apply_failure_message(working_path, result.stderr + result.stdout); });
+var destroy_on_merge = run_with_messages(function (working_path, result) { return destroy_on_merge_message(working_path, result.stdout); }, function (working_path, result, base_sha) { return destroy_on_merge_failure_message(working_path, result.stderr + result.stdout, base_sha); });
+var pr_commands = {
+    'plan-for-apply': pr_plan_for_apply,
+    'plan-for-destroy': pr_plan_for_destroy,
+    'apply-on-comment': apply_on_comment,
+    'destroy-on-merge': destroy_on_merge
+};
+var comment = function (run_type, working_path, run_result) {
+    return pr_awaiter(this, void 0, void 0, function () {
+        var base_sha, command, e_1;
+        return pr_generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 3, , 4]);
+                    return [4 /*yield*/, gh_base_sha()];
+                case 1:
+                    base_sha = _a.sent();
+                    command = pr_commands[run_type] || pr_no_command(run_type);
+                    return [4 /*yield*/, command(working_path, run_result, base_sha)];
+                case 2: return [2 /*return*/, _a.sent()];
+                case 3:
+                    e_1 = _a.sent();
+                    throw new Error(e_1);
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
+};
+
+;// CONCATENATED MODULE: ./lib/working-directory.ts
+var WorkingDirectory = /** @class */ (function () {
+    function WorkingDirectory(workspace, relative_path) {
+        this.workspace = workspace;
+        this.relative_path = relative_path;
+    }
+    WorkingDirectory.prototype.absolute_path = function () {
+        return this.workspace + "/" + this.relative_path;
+    };
+    return WorkingDirectory;
+}());
+/* harmony default export */ const lib_working_directory = (WorkingDirectory);
+
+;// CONCATENATED MODULE: ./lib/index.ts
+var lib_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var lib_generator = (undefined && undefined.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+
+
+
+
+
+var lib_run = function () {
+    return lib_awaiter(this, void 0, void 0, function () {
+        var tf_default, tg_default, relative_working_dir, working_directory, run_type, result, error_1;
+        return lib_generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 5, , 6]);
+                    return [4 /*yield*/, install("0.6.1")];
+                case 1:
+                    _a.sent();
+                    tf_default = core.getInput('default-terraform-version');
+                    tg_default = core.getInput('default-terragrunt-version');
+                    core.getInput('github-token', { required: true }); // Just for validation
+                    relative_working_dir = core.getInput('working-directory', { required: true });
+                    working_directory = new lib_working_directory(process.cwd(), relative_working_dir);
+                    run_type = core.getInput('run-type', { required: true });
+                    return [4 /*yield*/, setup(working_directory, tf_default, tg_default)];
+                case 2:
+                    _a.sent();
+                    return [4 /*yield*/, run(run_type, working_directory)];
+                case 3:
+                    result = _a.sent();
+                    return [4 /*yield*/, comment(run_type, working_directory, result)];
+                case 4:
+                    _a.sent();
+                    return [3 /*break*/, 6];
+                case 5:
+                    error_1 = _a.sent();
+                    core.setFailed(error_1.message);
+                    return [3 /*break*/, 6];
+                case 6: return [2 /*return*/];
+            }
+        });
+    });
+};
+lib_run();
 
 })();
 

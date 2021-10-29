@@ -1,8 +1,9 @@
-jest.mock('@actions/exec');
+import {jest} from '@jest/globals';
+import * as terragrunt from './terragrunt';
+import * as exec from "@actions/exec";
+import WorkingDirectory from "./working-directory";
 
-const terragrunt = require('./terragrunt');
-const exec = require("@actions/exec");
-const WorkingDirectory = require("./working-directory");
+jest.mock('@actions/exec');
 
 beforeEach(() => {
     jest.clearAllMocks(); // Otherwise, calls will be persisted between runs
@@ -13,7 +14,7 @@ let working_directory = new WorkingDirectory('workspace', 'relative_path');
 describe('terragrunt.run', () => {
     describe('when run_type is unknown', () => {
         test('it throws an error', async () => {
-            await expect(() => terragrunt.run('foobar')).rejects.toThrowError('Invalid run-type');
+            await expect(() => terragrunt.run('foobar', null)).rejects.toThrowError('Invalid run-type');
         });
     });
 
@@ -32,7 +33,7 @@ describe('terragrunt.run', () => {
             test('it calls terragrunt plan', async () => {
                 await terragrunt.run('plan-for-apply', working_directory);
 
-                let call = exec.getExecOutput.mock.calls[0];
+                let call = (exec.getExecOutput as jest.Mock).mock.calls[0];
 
                 let [binary, [command], options] = [...call];
                 expect(binary).toEqual("terragrunt");
@@ -45,7 +46,7 @@ describe('terragrunt.run', () => {
             test('it calls terragrunt apply', async () => {
                 await terragrunt.run('apply-on-comment', working_directory);
 
-                let call = exec.getExecOutput.mock.calls[0];
+                let call = (exec.getExecOutput as jest.Mock).mock.calls[0];
 
                 let [binary, [command, ...restOfArgs], options] = [...call];
                 expect(binary).toEqual("terragrunt");
@@ -59,7 +60,7 @@ describe('terragrunt.run', () => {
             test('it calls terragrunt plan -destroy', async () => {
                 await terragrunt.run('plan-for-destroy', working_directory);
 
-                let call = exec.getExecOutput.mock.calls[0];
+                let call = (exec.getExecOutput as jest.Mock).mock.calls[0];
 
                 let [binary, [command, ...restOfArgs], options] = [...call];
 
