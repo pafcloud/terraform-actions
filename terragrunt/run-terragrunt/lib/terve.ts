@@ -4,10 +4,11 @@ import { chmodSync, readFileSync } from 'fs';
 import * as core from '@actions/core';
 import * as findUp from 'find-up';
 import { chdir, env } from 'process';
+import WorkingDirectory from "./working-directory";
 
-let prepare = async function() {
-    let terve_etc = `${env.HOME}/.terve/etc`;
-    let hashicorp_key = `${terve_etc}/terraform.asc`;
+const prepare = async function() {
+    const terve_etc = `${env.HOME}/.terve/etc`;
+    const hashicorp_key = `${terve_etc}/terraform.asc`;
 
     await io.mkdirP(terve_etc);
 
@@ -17,16 +18,16 @@ let prepare = async function() {
     chmodSync(hashicorp_key, '0444');
 }
 
-export let install = async function(version) {
+export const install = async function(version: string) : Promise<void> {
     await prepare();
 
-    let base_url = 'https://github.com/superblk/terve/releases/download';
+    const base_url = 'https://github.com/superblk/terve/releases/download';
 
-    let get_artifact_url = function (artifact) {
+    const get_artifact_url = function (artifact) {
         return `${base_url}/v${version}/${artifact}`
     };
 
-    let download = async function (artifact) {
+    const download = async function (artifact) {
         await exec(`curl -L -o ${artifact} ${get_artifact_url(artifact)}`);
     }
 
@@ -44,23 +45,28 @@ export let install = async function(version) {
     core.addPath(`${env.HOME}/.terve/bin`)
 }
 
-let readFileOrDefault = async function(path, default_value) {
-    let file = await findUp.default(path); // This looks funky b/c of some kind of incompatibility between this version of findUp and ES modules
+const readFileOrDefault = async function(path: string, default_value: string) : Promise<string> {
+    const file = await findUp.default(path); // This looks funky b/c of some kind of incompatibility between this version of findUp and ES modules
     if(!file) {
         return default_value;
     }
     return readFileSync(file, 'utf-8').trim() || default_value.trim();
 }
 
-let resolveVersions = async function(default_tf, default_tg) {
-    let terraform_version = await readFileOrDefault('.terraform-version', default_tf);
-    let terragrunt_version = await readFileOrDefault('.terragrunt-version', default_tg);
+interface TerraVersions {
+    terraform_version: string,
+    terragrunt_version: string
+}
+
+const resolveVersions = async function(default_tf: string, default_tg) : Promise<TerraVersions> {
+    const terraform_version = await readFileOrDefault('.terraform-version', default_tf);
+    const terragrunt_version = await readFileOrDefault('.terragrunt-version', default_tg);
     return { terraform_version, terragrunt_version }
 }
 
-export let setup = async function(working_directory, default_tf, default_tg) {
+export const setup = async function(working_directory: WorkingDirectory, default_tf: string, default_tg: string) : Promise<void> {
     chdir(working_directory.absolute_path());
-    let { terragrunt_version, terraform_version } = await resolveVersions(default_tf, default_tg);
+    const { terragrunt_version, terraform_version } = await resolveVersions(default_tf, default_tg);
     core.info(`Preparing to install terraform ${terraform_version} and terragrunt ${terragrunt_version}`);
     await exec("terve", ['install', 'tf', terraform_version]);
     await exec("terve", ['install', 'tg', terragrunt_version]);
