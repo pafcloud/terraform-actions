@@ -2,6 +2,7 @@ import {jest} from '@jest/globals';
 import * as terragrunt from './terragrunt';
 import * as exec from "@actions/exec";
 import WorkingDirectory from "./working-directory";
+import RunType from "./run_type";
 
 jest.mock('@actions/exec');
 
@@ -12,16 +13,10 @@ beforeEach(() => {
 const working_directory = new WorkingDirectory('workspace', 'relative_path');
 
 describe('terragrunt.run', () => {
-    describe('when run_type is unknown', () => {
-        test('it throws an error', async () => {
-            await expect(() => terragrunt.run('foobar', null)).rejects.toThrowError('Invalid run-type');
-        });
-    });
-
     describe('when working-directory is not set', () => {
        ['plan-for-apply', 'plan-for-destroy', 'apply-on-comment'].forEach(run_type => {
           test(`running ${run_type} throws an error`, async () => {
-              await expect(() => terragrunt.run(run_type, null))
+              await expect(() => terragrunt.run(run_type as RunType, null))
                   .rejects
                   .toThrowError('working-directory is not set');
           });
@@ -71,5 +66,20 @@ describe('terragrunt.run', () => {
             });
         });
 
+        describe('and run_type is destroy-on-merge', () => {
+           it('calls terragrunt destroy -no-color -auto-approve -input=false', async () => {
+               await terragrunt.run('destroy-on-merge', working_directory);
+
+               const call = (exec.getExecOutput as jest.Mock).mock.calls[0];
+
+               const [binary, [command, ...restOfArgs], options] = [...call];
+
+               expect(binary).toEqual("terragrunt");
+               expect(command).toEqual("destroy");
+               expect(restOfArgs).toContain("-auto-approve");
+               expect(restOfArgs).toContain("-input=false");
+               expect(options.cwd).toEqual('workspace/relative_path');
+           });
+        });
     });
 });

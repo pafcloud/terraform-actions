@@ -1,6 +1,10 @@
 import * as github from '@actions/github';
 import * as core from '@actions/core';
 
+/**
+ * Posts a PR comment
+ * @param body The body of the comment
+ */
 export const post_pr_comment = async function(body: string) : Promise<void> {
     const token = core.getInput('github-token', { required: true });
     const octokit = github.getOctokit(token);
@@ -17,6 +21,9 @@ export const post_pr_comment = async function(body: string) : Promise<void> {
     }
 };
 
+/**
+ * For the current PR, extracts the base_sha, i.e. the sha of the target branch
+ */
 export const base_sha = async function() : Promise<string> {
     const token = core.getInput('github-token', { required: true });
     const octokit = github.getOctokit(token)

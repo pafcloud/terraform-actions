@@ -4,6 +4,7 @@ jest.mock('./gh');
 
 import * as gh from './gh';
 import * as pr from './pr';
+import WorkingDirectory from "./working-directory";
 
 beforeEach(() => {
     jest.clearAllMocks();
@@ -20,16 +21,18 @@ const failedResult = {
     stderr: "stderr"
 };
 
+const working_path = new WorkingDirectory('working', 'path');
+
 describe('.comment', () => {
     describe('plan-for-apply', () => {
         test('when successful', async() => {
-            await pr.comment('plan-for-apply', 'working/path', successfulResult);
+            await pr.comment('plan-for-apply', working_path, successfulResult);
 
             expect(gh.post_pr_comment).toHaveBeenLastCalledWith(plan_message);
         });
 
         test( 'when not successful', async () => {
-            await pr.comment('plan-for-apply', 'working/path', failedResult);
+            await pr.comment('plan-for-apply', working_path, failedResult);
 
             expect(gh.post_pr_comment).toHaveBeenLastCalledWith(plan_failure);
         });
@@ -43,7 +46,7 @@ describe('.comment', () => {
         });
 
         test('when not successful', async () => {
-            await pr.comment('plan-for-destroy', 'working/path', failedResult);
+            await pr.comment('plan-for-destroy', working_path, failedResult);
 
             expect(gh.post_pr_comment).toHaveBeenLastCalledWith(plan_failure);
         });
@@ -57,7 +60,7 @@ describe('.comment', () => {
         });
 
         test('when not successful', async () => {
-            await pr.comment('apply-on-comment', 'working/path', failedResult);
+            await pr.comment('apply-on-comment', working_path, failedResult);
 
             expect(gh.post_pr_comment).toHaveBeenLastCalledWith(apply_failure);
         });
@@ -81,7 +84,7 @@ describe('.comment', () => {
 });
 
 const call_pr_comment_with = async function (run_type, result) {
-    await pr.comment(run_type, 'working/path', result);
+    await pr.comment(run_type, working_path, result);
 };
 
 const plan_message =

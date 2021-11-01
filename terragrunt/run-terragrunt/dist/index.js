@@ -10430,9 +10430,11 @@ var terragrunt_generator = (undefined && undefined.__generator) || function (thi
 
 var no_command = function (run_type) {
     var _this = this;
-    return function () { return terragrunt_awaiter(_this, void 0, void 0, function () { return terragrunt_generator(this, function (_a) {
-        throw new Error("Invalid run-type " + run_type);
-    }); }); };
+    return function () { return terragrunt_awaiter(_this, void 0, void 0, function () {
+        return terragrunt_generator(this, function (_a) {
+            throw new Error("Invalid run-type " + run_type);
+        });
+    }); };
 };
 var exec_terragrunt = function (args) {
     var _this = this;
@@ -10452,10 +10454,12 @@ var exec_terragrunt = function (args) {
 var plan_for_apply = exec_terragrunt(['plan', '-no-color', '-input=false']);
 var plan_for_destroy = exec_terragrunt(['plan', '-destroy', '-no-color', '-input=false']);
 var apply = exec_terragrunt(['apply', '-no-color', '-auto-approve', '-input=false']);
+var destroy_on_merge = exec_terragrunt(['destroy', '-no-color', '-auto-approve', '-input=false']);
 var commands = {
     'plan-for-apply': plan_for_apply,
     'apply-on-comment': apply,
-    'plan-for-destroy': plan_for_destroy
+    'plan-for-destroy': plan_for_destroy,
+    'destroy-on-merge': destroy_on_merge
 };
 var run = function (run_type, working_directory) {
     return terragrunt_awaiter(this, void 0, void 0, function () {
@@ -10613,25 +10617,25 @@ var pr_generator = (undefined && undefined.__generator) || function (thisArg, bo
 };
 
 var plan_for_apply_message = function (working_path, plan) {
-    return "### Terraform `plan` (" + working_path + ")\n<details><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n\n</details>\n\nPlease review the plan above, ask code owners to approve this pull request, and then run terraform apply by commenting <code>/apply</code> or merging this PR\n";
+    return "### Terraform `plan` (" + working_path.absolute_path() + ")\n<details><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n\n</details>\n\nPlease review the plan above, ask code owners to approve this pull request, and then run terraform apply by commenting <code>/apply</code> or merging this PR\n";
 };
 var plan_for_apply_failure_message = function (working_path, plan) {
-    return "### Terraform `plan` failed (" + working_path + ")\n<details open><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n</details>\n\nPlease fix <code>terragrunt.hcl</code> inputs/module. Terraform plan is then automatically run again\n";
+    return "### Terraform `plan` failed (" + working_path.absolute_path() + ")\n<details open><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n</details>\n\nPlease fix <code>terragrunt.hcl</code> inputs/module. Terraform plan is then automatically run again\n";
 };
 var plan_for_destroy_message = function (working_path, plan) {
-    return "### Terraform `plan` (" + working_path + ")\n<details><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n\n</details>\n\nPlease review the plan above, ask code owners to approve this pull request, and then run terraform destroy by merging this PR\n";
+    return "### Terraform `plan` (" + working_path.absolute_path() + ")\n<details><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n\n</details>\n\nPlease review the plan above, ask code owners to approve this pull request, and then run terraform destroy by merging this PR\n";
 };
 var apply_failure_message = function (working_path, plan) {
-    return "### Terraform `apply` failed (" + working_path + ")\n<details open><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n</details>\n\nPlease fix <code>terragrunt.hcl</code> inputs/module. Terraform plan is then automatically run again\n";
+    return "### Terraform `apply` failed (" + working_path.absolute_path() + ")\n<details open><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n</details>\n\nPlease fix <code>terragrunt.hcl</code> inputs/module. Terraform plan is then automatically run again\n";
 };
 var apply_on_comment_message = function (working_path, plan) {
-    return "### Terraform `apply` (" + working_path + ")\n<details><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n\n</details>\n\nPlease merge this pull request to keep Git base branch and terraform-managed resource state in sync\n";
+    return "### Terraform `apply` (" + working_path.absolute_path() + ")\n<details><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n\n</details>\n\nPlease merge this pull request to keep Git base branch and terraform-managed resource state in sync\n";
 };
 var destroy_on_merge_message = function (working_path, plan) {
-    return "### Terraform `destroy` (" + working_path + ")\n<details><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n\n</details>\n";
+    return "### Terraform `destroy` (" + working_path.absolute_path() + ")\n<details><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n\n</details>\n";
 };
 var destroy_on_merge_failure_message = function (working_path, plan, base_sha) {
-    return "### Terraform `destroy` failed (" + working_path + ")\n<details open><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n\n</details>\n\nPlease run terraform destroy manually (do `git checkout " + base_sha + "` to restore `terragrunt.hcl`)\n";
+    return "### Terraform `destroy` failed (" + working_path.absolute_path() + ")\n<details open><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n\n</details>\n\nPlease run terraform destroy manually (do `git checkout " + base_sha + "` to restore `terragrunt.hcl`)\n";
 };
 var pr_no_command = function (run_type) {
     var _this = this;
@@ -10663,12 +10667,12 @@ var run_with_messages = function (success, failure) {
 var pr_plan_for_apply = run_with_messages(function (working_path, result) { return plan_for_apply_message(working_path, result.stdout); }, function (working_path, result) { return plan_for_apply_failure_message(working_path, result.stderr + result.stdout); });
 var pr_plan_for_destroy = run_with_messages(function (working_path, result) { return plan_for_destroy_message(working_path, result.stdout); }, function (working_path, result) { return plan_for_apply_failure_message(working_path, result.stderr + result.stdout); });
 var apply_on_comment = run_with_messages(function (working_path, result) { return apply_on_comment_message(working_path, result.stdout); }, function (working_path, result) { return apply_failure_message(working_path, result.stderr + result.stdout); });
-var destroy_on_merge = run_with_messages(function (working_path, result) { return destroy_on_merge_message(working_path, result.stdout); }, function (working_path, result, base_sha) { return destroy_on_merge_failure_message(working_path, result.stderr + result.stdout, base_sha); });
+var pr_destroy_on_merge = run_with_messages(function (working_path, result) { return destroy_on_merge_message(working_path, result.stdout); }, function (working_path, result, base_sha) { return destroy_on_merge_failure_message(working_path, result.stderr + result.stdout, base_sha); });
 var pr_commands = {
     'plan-for-apply': pr_plan_for_apply,
     'plan-for-destroy': pr_plan_for_destroy,
     'apply-on-comment': apply_on_comment,
-    'destroy-on-merge': destroy_on_merge
+    'destroy-on-merge': pr_destroy_on_merge
 };
 var comment = function (run_type, working_path, run_result) {
     return pr_awaiter(this, void 0, void 0, function () {
@@ -10704,6 +10708,17 @@ var WorkingDirectory = /** @class */ (function () {
     return WorkingDirectory;
 }());
 /* harmony default export */ const lib_working_directory = (WorkingDirectory);
+
+;// CONCATENATED MODULE: ./lib/run_type.ts
+// This is a 'hack' to achieve an iterable union type
+var run_types = ['plan-for-apply', 'plan-for-destroy', 'apply-on-comment', 'destroy-on-merge'];
+var parse = function (maybe_run_type) {
+    var found = run_types.find(function (valid_type) { return valid_type === maybe_run_type; });
+    if (found) {
+        return found;
+    }
+    throw new Error(maybe_run_type + " is not a valid run type");
+};
 
 ;// CONCATENATED MODULE: ./lib/index.ts
 var lib_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
@@ -10747,9 +10762,10 @@ var lib_generator = (undefined && undefined.__generator) || function (thisArg, b
 
 
 
+
 var lib_run = function () {
     return lib_awaiter(this, void 0, void 0, function () {
-        var tf_default, tg_default, relative_working_dir, working_directory, run_type, result, error_1;
+        var tf_default, tg_default, relative_working_dir, working_directory, raw_run_type, run_type, result, error_1;
         return lib_generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -10762,7 +10778,8 @@ var lib_run = function () {
                     core.getInput('github-token', { required: true }); // Just for validation
                     relative_working_dir = core.getInput('working-directory', { required: true });
                     working_directory = new lib_working_directory(process.cwd(), relative_working_dir);
-                    run_type = core.getInput('run-type', { required: true });
+                    raw_run_type = core.getInput('run-type', { required: true });
+                    run_type = parse(raw_run_type);
                     return [4 /*yield*/, setup(working_directory, tf_default, tg_default)];
                 case 2:
                     _a.sent();
