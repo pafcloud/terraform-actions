@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-if git diff-index --cached --name-only HEAD -- ./terragrunt/run-terragrunt/lib | grep .js; then
-  echo ".githooks/pre-commit: We have changes to js source - running npm prepare"
+if git diff-index --cached --name-only HEAD -- ./terragrunt/run-terragrunt/lib | grep '.js\|.ts'; then
+  echo ".githooks/pre-commit: We have changes to js/ts source - running npm prepare"
   npm run --prefix ./terragrunt/run-terragrunt prepare || { echo "Failed to run npm prepare, exiting" ; exit 1; }
   git add ./terragrunt/run-terragrunt/dist
 else
-  echo ".githooks/pre-commit: No js files changed"
+  echo ".githooks/pre-commit: No js/ts files changed"
 fi
