@@ -10527,6 +10527,10 @@ var gh_generator = (undefined && undefined.__generator) || function (thisArg, bo
 };
 
 
+/**
+ * Posts a PR comment
+ * @param body The body of the comment
+ */
 var post_pr_comment = function (body) {
     return gh_awaiter(this, void 0, void 0, function () {
         var token, octokit, context, issue_number, e_1;
@@ -10552,6 +10556,9 @@ var post_pr_comment = function (body) {
         });
     });
 };
+/**
+ * For the current PR, extracts the base_sha, i.e. the sha of the target branch
+ */
 var gh_base_sha = function () {
     return gh_awaiter(this, void 0, void 0, function () {
         var token, octokit, context, pull_number, sha, e_2;
@@ -10616,26 +10623,47 @@ var pr_generator = (undefined && undefined.__generator) || function (thisArg, bo
     }
 };
 
+var comment = function (run_type, working_path, run_result) {
+    return pr_awaiter(this, void 0, void 0, function () {
+        var base_sha, command, e_1;
+        return pr_generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 3, , 4]);
+                    return [4 /*yield*/, gh_base_sha()];
+                case 1:
+                    base_sha = _a.sent();
+                    command = pr_commands[run_type] || pr_no_command(run_type);
+                    return [4 /*yield*/, command(working_path, run_result, base_sha)];
+                case 2: return [2 /*return*/, _a.sent()];
+                case 3:
+                    e_1 = _a.sent();
+                    throw new Error(e_1);
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
+};
 var plan_for_apply_message = function (working_path, plan) {
-    return "### Terraform `plan` (" + working_path.absolute_path() + ")\n<details><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n\n</details>\n\nPlease review the plan above, ask code owners to approve this pull request, and then run terraform apply by commenting <code>/apply</code> or merging this PR\n";
+    return "### Terraform `plan` (" + working_path.relative_path + ")\n<details><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n\n</details>\n\nPlease review the plan above, ask code owners to approve this pull request, and then run terraform apply by commenting <code>/apply</code> or merging this PR\n";
 };
 var plan_for_apply_failure_message = function (working_path, plan) {
-    return "### Terraform `plan` failed (" + working_path.absolute_path() + ")\n<details open><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n</details>\n\nPlease fix <code>terragrunt.hcl</code> inputs/module. Terraform plan is then automatically run again\n";
+    return "### Terraform `plan` failed (" + working_path.relative_path + ")\n<details open><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n</details>\n\nPlease fix <code>terragrunt.hcl</code> inputs/module. Terraform plan is then automatically run again\n";
 };
 var plan_for_destroy_message = function (working_path, plan) {
-    return "### Terraform `plan` (" + working_path.absolute_path() + ")\n<details><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n\n</details>\n\nPlease review the plan above, ask code owners to approve this pull request, and then run terraform destroy by merging this PR\n";
+    return "### Terraform `plan` (" + working_path.relative_path + ")\n<details><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n\n</details>\n\nPlease review the plan above, ask code owners to approve this pull request, and then run terraform destroy by merging this PR\n";
 };
 var apply_failure_message = function (working_path, plan) {
-    return "### Terraform `apply` failed (" + working_path.absolute_path() + ")\n<details open><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n</details>\n\nPlease fix <code>terragrunt.hcl</code> inputs/module. Terraform plan is then automatically run again\n";
+    return "### Terraform `apply` failed (" + working_path.relative_path + ")\n<details open><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n</details>\n\nPlease fix <code>terragrunt.hcl</code> inputs/module. Terraform plan is then automatically run again\n";
 };
 var apply_on_comment_message = function (working_path, plan) {
-    return "### Terraform `apply` (" + working_path.absolute_path() + ")\n<details><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n\n</details>\n\nPlease merge this pull request to keep Git base branch and terraform-managed resource state in sync\n";
+    return "### Terraform `apply` (" + working_path.relative_path + ")\n<details><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n\n</details>\n\nPlease merge this pull request to keep Git base branch and terraform-managed resource state in sync\n";
 };
 var destroy_on_merge_message = function (working_path, plan) {
-    return "### Terraform `destroy` (" + working_path.absolute_path() + ")\n<details><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n\n</details>\n";
+    return "### Terraform `destroy` (" + working_path.relative_path + ")\n<details><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n\n</details>\n";
 };
 var destroy_on_merge_failure_message = function (working_path, plan, base_sha) {
-    return "### Terraform `destroy` failed (" + working_path.absolute_path() + ")\n<details open><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n\n</details>\n\nPlease run terraform destroy manually (do `git checkout " + base_sha + "` to restore `terragrunt.hcl`)\n";
+    return "### Terraform `destroy` failed (" + working_path.relative_path + ")\n<details open><summary>Show output</summary>\n\n```text\n\n" + plan + "\n\n```\n\n</details>\n\nPlease run terraform destroy manually (do `git checkout " + base_sha + "` to restore `terragrunt.hcl`)\n";
 };
 var pr_no_command = function (run_type) {
     var _this = this;
@@ -10673,27 +10701,6 @@ var pr_commands = {
     'plan-for-destroy': pr_plan_for_destroy,
     'apply-on-comment': apply_on_comment,
     'destroy-on-merge': pr_destroy_on_merge
-};
-var comment = function (run_type, working_path, run_result) {
-    return pr_awaiter(this, void 0, void 0, function () {
-        var base_sha, command, e_1;
-        return pr_generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    _a.trys.push([0, 3, , 4]);
-                    return [4 /*yield*/, gh_base_sha()];
-                case 1:
-                    base_sha = _a.sent();
-                    command = pr_commands[run_type] || pr_no_command(run_type);
-                    return [4 /*yield*/, command(working_path, run_result, base_sha)];
-                case 2: return [2 /*return*/, _a.sent()];
-                case 3:
-                    e_1 = _a.sent();
-                    throw new Error(e_1);
-                case 4: return [2 /*return*/];
-            }
-        });
-    });
 };
 
 ;// CONCATENATED MODULE: ./lib/working-directory.ts

@@ -88,7 +88,7 @@ const call_pr_comment_with = async function (run_type, result) {
 };
 
 const plan_message =
-    `### Terraform \`plan\` (working/path)
+    `### Terraform \`plan\` (path)
 <details><summary>Show output</summary>
 
 \`\`\`text
@@ -103,7 +103,7 @@ Please review the plan above, ask code owners to approve this pull request, and 
 `
 
 const plan_failure =
-    `### Terraform \`plan\` failed (working/path)
+    `### Terraform \`plan\` failed (path)
 <details open><summary>Show output</summary>
 
 \`\`\`text
@@ -117,7 +117,7 @@ Please fix <code>terragrunt.hcl</code> inputs/module. Terraform plan is then aut
 `;
 
 const plan_for_destroy_message =
-    `### Terraform \`plan\` (working/path)
+    `### Terraform \`plan\` (path)
 <details><summary>Show output</summary>
 
 \`\`\`text
@@ -132,7 +132,7 @@ Please review the plan above, ask code owners to approve this pull request, and 
 `;
 
 const apply_on_comment_message =
-    `### Terraform \`apply\` (working/path)
+    `### Terraform \`apply\` (path)
 <details><summary>Show output</summary>
 
 \`\`\`text
@@ -147,7 +147,7 @@ Please merge this pull request to keep Git base branch and terraform-managed res
 `;
 
 const apply_failure =
-    `### Terraform \`apply\` failed (working/path)
+    `### Terraform \`apply\` failed (path)
 <details open><summary>Show output</summary>
 
 \`\`\`text
@@ -161,7 +161,7 @@ Please fix <code>terragrunt.hcl</code> inputs/module. Terraform plan is then aut
 `;
 
 const destroy_on_merge_comment =
-    `### Terraform \`destroy\` (working/path)
+    `### Terraform \`destroy\` (path)
 <details><summary>Show output</summary>
 
 \`\`\`text
@@ -174,7 +174,7 @@ stdout
 `;
 
 const destroy_on_merge_failure_comment =
-    `### Terraform \`destroy\` failed (working/path)
+    `### Terraform \`destroy\` failed (path)
 <details open><summary>Show output</summary>
 
 \`\`\`text

@@ -14,7 +14,7 @@ export const comment = async function (run_type: RunType, working_path: WorkingD
 };
 
 const plan_for_apply_message = (working_path: WorkingDirectory, plan: string) => {
-    return `### Terraform \`plan\` (${working_path.absolute_path()})
+    return `### Terraform \`plan\` (${working_path.relative_path})
 <details><summary>Show output</summary>
 
 \`\`\`text
@@ -30,7 +30,7 @@ Please review the plan above, ask code owners to approve this pull request, and 
 };
 
 const plan_for_apply_failure_message = (working_path: WorkingDirectory, plan: string) => {
-    return `### Terraform \`plan\` failed (${working_path.absolute_path()})
+    return `### Terraform \`plan\` failed (${working_path.relative_path})
 <details open><summary>Show output</summary>
 
 \`\`\`text
@@ -45,7 +45,7 @@ Please fix <code>terragrunt.hcl</code> inputs/module. Terraform plan is then aut
 };
 
 const plan_for_destroy_message = (working_path: WorkingDirectory, plan: string) => {
-    return `### Terraform \`plan\` (${working_path.absolute_path()})
+    return `### Terraform \`plan\` (${working_path.relative_path})
 <details><summary>Show output</summary>
 
 \`\`\`text
@@ -61,7 +61,7 @@ Please review the plan above, ask code owners to approve this pull request, and 
 };
 
 const apply_failure_message = (working_path: WorkingDirectory, plan: string) => {
-    return `### Terraform \`apply\` failed (${working_path.absolute_path()})
+    return `### Terraform \`apply\` failed (${working_path.relative_path})
 <details open><summary>Show output</summary>
 
 \`\`\`text
@@ -76,7 +76,7 @@ Please fix <code>terragrunt.hcl</code> inputs/module. Terraform plan is then aut
 };
 
 const apply_on_comment_message = (working_path: WorkingDirectory, plan: string) => {
-    return `### Terraform \`apply\` (${working_path.absolute_path()})
+    return `### Terraform \`apply\` (${working_path.relative_path})
 <details><summary>Show output</summary>
 
 \`\`\`text
@@ -92,7 +92,7 @@ Please merge this pull request to keep Git base branch and terraform-managed res
 };
 
 const destroy_on_merge_message = (working_path: WorkingDirectory, plan: string) => {
-    return `### Terraform \`destroy\` (${working_path.absolute_path()})
+    return `### Terraform \`destroy\` (${working_path.relative_path})
 <details><summary>Show output</summary>
 
 \`\`\`text
@@ -106,7 +106,7 @@ ${plan}
 };
 
 const destroy_on_merge_failure_message = (working_path: WorkingDirectory, plan: string, base_sha: string) => {
-    return `### Terraform \`destroy\` failed (${working_path.absolute_path()})
+    return `### Terraform \`destroy\` failed (${working_path.relative_path})
 <details open><summary>Show output</summary>
 
 \`\`\`text
