@@ -10352,15 +10352,14 @@ var resolveVersions = function (default_tf, default_tg) {
 };
 var setup = function (working_directory, default_tf, default_tg) {
     return __awaiter(this, void 0, void 0, function () {
-        var terragrunt_version, terraform_version;
-        var _a;
+        var _a, terragrunt_version, terraform_version;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
                     (0,external_process_namespaceObject.chdir)(working_directory.absolute_path());
                     return [4 /*yield*/, resolveVersions(default_tf, default_tg)];
                 case 1:
-                    terragrunt_version = (_a = _b.sent(), _a.terragrunt_version), terraform_version = _a.terraform_version;
+                    _a = _b.sent(), terragrunt_version = _a.terragrunt_version, terraform_version = _a.terraform_version;
                     core.info("Preparing to install terraform " + terraform_version + " and terragrunt " + terragrunt_version);
                     return [4 /*yield*/, (0,exec.exec)("terve", ['install', 'tf', terraform_version])];
                 case 2:

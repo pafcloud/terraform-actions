@@ -9,7 +9,7 @@ beforeEach(() => {
     jest.clearAllMocks(); // Otherwise, calls will be persisted between runs
 });
 
-let working_directory = new WorkingDirectory('workspace', 'relative_path');
+const working_directory = new WorkingDirectory('workspace', 'relative_path');
 
 describe('terragrunt.run', () => {
     describe('when run_type is unknown', () => {
@@ -33,9 +33,9 @@ describe('terragrunt.run', () => {
             test('it calls terragrunt plan', async () => {
                 await terragrunt.run('plan-for-apply', working_directory);
 
-                let call = (exec.getExecOutput as jest.Mock).mock.calls[0];
+                const call = (exec.getExecOutput as jest.Mock).mock.calls[0];
 
-                let [binary, [command], options] = [...call];
+                const [binary, [command], options] = [...call];
                 expect(binary).toEqual("terragrunt");
                 expect(command).toEqual("plan");
                 expect(options.cwd).toEqual('workspace/relative_path');
@@ -46,9 +46,9 @@ describe('terragrunt.run', () => {
             test('it calls terragrunt apply', async () => {
                 await terragrunt.run('apply-on-comment', working_directory);
 
-                let call = (exec.getExecOutput as jest.Mock).mock.calls[0];
+                const call = (exec.getExecOutput as jest.Mock).mock.calls[0];
 
-                let [binary, [command, ...restOfArgs], options] = [...call];
+                const [binary, [command, ...restOfArgs], options] = [...call];
                 expect(binary).toEqual("terragrunt");
                 expect(command).toEqual("apply");
                 expect(restOfArgs).toContain("-auto-approve");
@@ -60,9 +60,9 @@ describe('terragrunt.run', () => {
             test('it calls terragrunt plan -destroy', async () => {
                 await terragrunt.run('plan-for-destroy', working_directory);
 
-                let call = (exec.getExecOutput as jest.Mock).mock.calls[0];
+                const call = (exec.getExecOutput as jest.Mock).mock.calls[0];
 
-                let [binary, [command, ...restOfArgs], options] = [...call];
+                const [binary, [command, ...restOfArgs], options] = [...call];
 
                 expect(binary).toEqual("terragrunt");
                 expect(command).toEqual("plan");

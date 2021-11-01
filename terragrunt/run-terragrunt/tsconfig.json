@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "outDir": "./built",
-    "allowJs": true,
     "target": "es5",
     "types": ["node", "jest"],
     "moduleResolution": "node",

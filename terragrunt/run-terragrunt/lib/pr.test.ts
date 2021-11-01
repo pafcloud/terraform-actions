@@ -1,7 +1,9 @@
+import { jest } from '@jest/globals';
+
 jest.mock('./gh');
 
-const gh = require('./gh');
-const pr = require('./pr');
+import * as gh from './gh';
+import * as pr from './pr';
 
 beforeEach(() => {
     jest.clearAllMocks();
@@ -69,7 +71,7 @@ describe('.comment', () => {
        });
 
         test('when successful', async () => {
-            gh.base_sha.mockReturnValue(Promise.resolve('base_sha'));
+            (gh.base_sha as jest.Mock).mockReturnValue(Promise.resolve('base_sha'));
 
             await call_pr_comment_with('destroy-on-merge', failedResult);
 
@@ -78,7 +80,7 @@ describe('.comment', () => {
     });
 });
 
-let call_pr_comment_with = async function (run_type, result) {
+const call_pr_comment_with = async function (run_type, result) {
     await pr.comment(run_type, 'working/path', result);
 };
 
