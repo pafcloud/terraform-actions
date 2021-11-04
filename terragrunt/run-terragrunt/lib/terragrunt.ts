@@ -36,7 +36,8 @@ const commands: Record<RunType, Command> = {
     'plan-for-apply': plan_for_apply,
     'apply-on-comment': apply,
     'plan-for-destroy': plan_for_destroy,
-    'destroy-on-merge': destroy_on_merge
+    'destroy-on-merge': destroy_on_merge,
+    'apply-on-merge': apply
 }
 
 export const run = async function (run_type: RunType, working_directory: WorkingDirectory): Promise<RunResult> {

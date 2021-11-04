@@ -149,7 +149,7 @@ const plan_for_destroy = run_with_messages(
     (working_path, result) => plan_for_apply_failure_message(working_path, result.stderr + result.stdout)
 )
 
-const apply_on_comment = run_with_messages(
+const apply = run_with_messages(
     (working_path, result) => apply_on_comment_message(working_path, result.stdout),
     (working_path, result) => apply_failure_message(working_path, result.stderr + result.stdout),
 );
@@ -163,6 +163,7 @@ type Command = (working_path: WorkingDirectory, run_result: ExecOutput, base_sha
 const commands: Record<RunType, Command> = {
     'plan-for-apply': plan_for_apply,
     'plan-for-destroy': plan_for_destroy,
-    'apply-on-comment': apply_on_comment,
-    'destroy-on-merge': destroy_on_merge
+    'apply-on-comment': apply,
+    'destroy-on-merge': destroy_on_merge,
+    'apply-on-merge': apply
 };

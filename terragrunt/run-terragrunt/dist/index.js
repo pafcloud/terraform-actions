@@ -10459,7 +10459,8 @@ var commands = {
     'plan-for-apply': plan_for_apply,
     'apply-on-comment': apply,
     'plan-for-destroy': plan_for_destroy,
-    'destroy-on-merge': destroy_on_merge
+    'destroy-on-merge': destroy_on_merge,
+    'apply-on-merge': apply
 };
 var run = function (run_type, working_directory) {
     return terragrunt_awaiter(this, void 0, void 0, function () {
@@ -10694,13 +10695,14 @@ var run_with_messages = function (success, failure) {
 };
 var pr_plan_for_apply = run_with_messages(function (working_path, result) { return plan_for_apply_message(working_path, result.stdout); }, function (working_path, result) { return plan_for_apply_failure_message(working_path, result.stderr + result.stdout); });
 var pr_plan_for_destroy = run_with_messages(function (working_path, result) { return plan_for_destroy_message(working_path, result.stdout); }, function (working_path, result) { return plan_for_apply_failure_message(working_path, result.stderr + result.stdout); });
-var apply_on_comment = run_with_messages(function (working_path, result) { return apply_on_comment_message(working_path, result.stdout); }, function (working_path, result) { return apply_failure_message(working_path, result.stderr + result.stdout); });
+var pr_apply = run_with_messages(function (working_path, result) { return apply_on_comment_message(working_path, result.stdout); }, function (working_path, result) { return apply_failure_message(working_path, result.stderr + result.stdout); });
 var pr_destroy_on_merge = run_with_messages(function (working_path, result) { return destroy_on_merge_message(working_path, result.stdout); }, function (working_path, result, base_sha) { return destroy_on_merge_failure_message(working_path, result.stderr + result.stdout, base_sha); });
 var pr_commands = {
     'plan-for-apply': pr_plan_for_apply,
     'plan-for-destroy': pr_plan_for_destroy,
-    'apply-on-comment': apply_on_comment,
-    'destroy-on-merge': pr_destroy_on_merge
+    'apply-on-comment': pr_apply,
+    'destroy-on-merge': pr_destroy_on_merge,
+    'apply-on-merge': pr_apply
 };
 
 ;// CONCATENATED MODULE: ./lib/working-directory.ts
@@ -10718,7 +10720,7 @@ var WorkingDirectory = /** @class */ (function () {
 
 ;// CONCATENATED MODULE: ./lib/run_type.ts
 // This is a 'hack' to achieve an iterable union type
-var run_types = ['plan-for-apply', 'plan-for-destroy', 'apply-on-comment', 'destroy-on-merge'];
+var run_types = ['plan-for-apply', 'plan-for-destroy', 'apply-on-comment', 'destroy-on-merge', 'apply-on-merge'];
 var parse = function (maybe_run_type) {
     var found = run_types.find(function (valid_type) { return valid_type === maybe_run_type; });
     if (found) {
