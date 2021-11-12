@@ -37,7 +37,7 @@ runs:
 
           echo "<details${open}><summary>Show output</summary>"
           echo
-          echo "\`\`\`${fmt}"
+          echo "\`\`\`\.hcl${fmt}"
           echo "$3"
           echo "\`\`\`"
           echo "</details>"
