@@ -5,9 +5,13 @@ inputs:
   github-token:
     description: GitHub auth token
     required: true
-  pull-request-number:
-    description: Pull request number
+  files-endpoint:
+    description: Endpoint to get list of changed files; ex. repos/{owner}/{repo}/pulls/665/files
     required: true
+  jq-query:
+    description: Optional query to select values from the response using jq syntax; eg. .files
+    required: false
+    default: .
 
 outputs:
   updates:
@@ -19,15 +23,9 @@ outputs:
 
 runs:
   using: composite
-  steps: 
+  steps:
     - id: changes
       run: |
-      
-        MAX_FILES_PER_PAGE=100
-        
-        AUTH_HEADER="Authorization: Bearer ${{ inputs.github-token }}"
-        URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${{ inputs.pull-request-number }}/files?per_page=$MAX_FILES_PER_PAGE"
-
         print_path() {
           dir=$(echo "$@" | grep terragrunt.hcl$ | sed 's/terragrunt.hcl//')
           if [ ! -z "$dir" -a ! -f "${dir}/no-terragrunt-apply" ]; then
@@ -35,21 +33,7 @@ runs:
           fi
         }
 
-        print_changed_files_paged() {
-          # Since GitHub workflows can only run max 256 parallel jobs, we max out at 800 changed files, which can
-          # accommodate 256 modified terragrunt.hcl files + .terraform-version and .terragrunt-version for each HCL
-          for page_num in {1..8}; do
-            page="$(curl -sH "${AUTH_HEADER}" "${URL}&page=${page_num}" | jq -c .)"
-            num_files=$(echo "$page" | jq length)
-            echo "$page"
-            if [ $num_files -lt $MAX_FILES_PER_PAGE ]; then
-              # No need to query for more
-              break
-            fi
-          done
-        }
-
-        changed_files="$(print_changed_files_paged | jq '.[]' | jq -sc .)"
+        changed_files="$(gh api ${FILES_ENDPOINT} --paginate --jq ${JQ_QUERY})"
 
         updates=$(for f in $(echo "${changed_files}" | jq -r '.[] | select(.status != "removed") | .filename'); do
           print_path "$f"
@@ -63,3 +47,7 @@ runs:
         echo ::set-output name=updates::$(echo -n ${updates} | jq -Rsc 'split(" ")')
         echo ::set-output name=deletions::$(echo -n ${deletions} | jq -Rsc 'split(" ")')
       shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        FILES_ENDPOINT: ${{ input.files-endpoint }}
+        JQ_QUERY: ${{ inputs.jq-query }}
