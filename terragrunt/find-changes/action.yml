@@ -6,10 +6,10 @@ inputs:
     description: GitHub auth token
     required: true
   files-endpoint:
-    description: Endpoint to get list of changed files; ex. repos/{owner}/{repo}/pulls/665/files
+    description: Endpoint to get list of changed files. Eg. repos/{owner}/{repo}/pulls/665/files
     required: true
   jq-query:
-    description: Optional query to select values from the response using jq syntax; eg. .files
+    description: Optional query to select values from the response using jq syntax. Eg. .files
     required: false
     default: .
 
@@ -49,5 +49,5 @@ runs:
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
-        FILES_ENDPOINT: ${{ input.files-endpoint }}
+        FILES_ENDPOINT: ${{ inputs.files-endpoint }}
         JQ_QUERY: ${{ inputs.jq-query }}
