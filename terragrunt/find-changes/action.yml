@@ -36,7 +36,8 @@ runs:
             ;;
 
           *)
-            changed_files=""
+            echo "Error: Unsupported event received: ${GITHUB_EVENT_NAME}. Only pull_request and push are supported. Exiting."
+            exit 1
             ;;
 
         esac
