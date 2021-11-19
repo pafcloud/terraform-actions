@@ -5,13 +5,6 @@ inputs:
   github-token:
     description: GitHub auth token
     required: true
-  files-endpoint:
-    description: Endpoint to get list of changed files. Eg. repos/{owner}/{repo}/pulls/665/files
-    required: true
-  jq-query:
-    description: Optional query to select values from the response using jq syntax. Eg. .files
-    required: false
-    default: .
 
 outputs:
   updates:
@@ -33,7 +26,20 @@ runs:
           fi
         }
 
-        changed_files="$(gh api ${FILES_ENDPOINT} --paginate --jq ${JQ_QUERY})"
+        case "${GITHUB_EVENT_NAME}" in
+          pull_request)
+            changed_files="$(gh api repos/{owner}/{repo}/pulls/${PR_NUMBER}/files --paginate)"
+            ;;
+
+          push)
+            changed_files="$(gh api repos/{owner}/{repo}/commits/${HEAD_COMMIT} --paginate --jq .files)"
+            ;;
+
+          *)
+            changed_files=""
+            ;;
+
+        esac
 
         updates=$(for f in $(echo "${changed_files}" | jq -r '.[] | select(.status != "removed") | .filename'); do
           print_path "$f"
@@ -49,5 +55,5 @@ runs:
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
-        FILES_ENDPOINT: ${{ inputs.files-endpoint }}
-        JQ_QUERY: ${{ inputs.jq-query }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        HEAD_COMMIT: ${{ github.event.head_commit.id }}
