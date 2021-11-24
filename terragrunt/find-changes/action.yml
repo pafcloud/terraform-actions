@@ -42,7 +42,7 @@ runs:
             page="$(curl -sH "${AUTH_HEADER}" "${URL}&page=${page_num}" | jq -c .)"
             num_files=$(echo "$page" | jq length)
             echo "$page"
-            if [ $num_files < $MAX_FILES_PER_PAGE ]; then
+            if (( "$num_files" < "$MAX_FILES_PER_PAGE" )); then
               # No need to query for more
               break
             fi
