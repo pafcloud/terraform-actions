@@ -5,17 +5,17 @@ inputs:
   github-token:
     description: GitHub auth token
     required: true
-  pull-request-number:
+  pr-number:
     description: Pull request number
     required: true
 
 outputs:
-  pull-request-state:
-    value: ${{ steps.check.outputs.pull-request-state }}
-  pull-request-mergeable-state:
-    value: ${{ steps.check.outputs.pull-request-mergeable-state }}
-  pull-request-head-sha:
-    value: ${{ steps.check.outputs.pull-request-head-sha }}
+  pr-state:
+    value: ${{ steps.check.outputs.pr-state }}
+  pr-mergeable-state:
+    value: ${{ steps.check.outputs.pr-mergeable-state }}
+  pr-head-sha:
+    value: ${{ steps.check.outputs.pr-head-sha }}
 
 runs:
   using: composite
@@ -32,10 +32,10 @@ runs:
           gh pr comment "$PR_NUMBER" --body "Terraform apply via PR comment is blocked. Pull request must be open and mergeable (approved and status checks passing)"
         fi
         
-        echo "::set-output name=pull-request-mergeable-state::${mergeable_state}"
-        echo "::set-output name=pull-request-state::${state}"
-        echo "::set-output name=pull-request-head-sha::${head_sha}"
+        echo "::set-output name=pr-mergeable-state::${mergeable_state}"
+        echo "::set-output name=pr-state::${state}"
+        echo "::set-output name=pr-head-sha::${head_sha}"
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
-        PR_NUMBER: ${{ inputs.pull-request-number }}
+        PR_NUMBER: ${{ inputs.pr-number }}
