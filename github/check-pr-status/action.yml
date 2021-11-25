@@ -44,7 +44,7 @@ runs:
         AUTH_HEADER="Authorization: Bearer ${{ inputs.github-token }}"
         URL="https://api.github.com/repos/${{ github.repository }}/pulls/${{ inputs.pull-request-number }}"
 
-        out=$(curl -sH "${AUTH_HEADER}" "${URL}")
+        out="$(gh api repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER)"
         mergeable_state=$(echo ${out} | jq -r .mergeable_state)
         state=$(echo ${out} | jq -r .state)
         head_sha=$(echo ${out} | jq -r .head.sha)
@@ -71,3 +71,6 @@ runs:
         echo ::set-output name=pull-request-state::${state}
         echo ::set-output name=pull-request-head-sha::${head_sha}
       shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        PR_NUMBER: ${{ inputs.pull-request-number }}
