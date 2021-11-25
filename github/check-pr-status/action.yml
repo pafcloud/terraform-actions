@@ -49,10 +49,17 @@ runs:
         state=$(echo ${out} | jq -r .state)
         head_sha=$(echo ${out} | jq -r .head.sha)
 
+        echo "out: $out"
+        echo "---"
+        echo "mergeable_state: $mergeable_state"
+        echo "---"
+        echo "state: $state"
+
         # Notify
         if [[ "${{ inputs.notify }}" == "true" && \
               (( "${state}" != "${{ inputs.desired-pull-request-state }}" || \
                  "${mergeable_state}" != "${{ inputs.desired-pull-request-mergeable-state }}" )) ]]; then
+          echo "Notifying ..."
           ACCEPT_HEADER="Accept: application/vnd.github.v3+json"
           CONTENT_HEADER="Content-Type: application/json"
           PR_COMMENTS_URL="https://api.github.com/repos/${{ github.repository }}/issues/${{ inputs.pull-request-number }}/comments"
