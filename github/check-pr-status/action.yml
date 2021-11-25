@@ -29,7 +29,7 @@ runs:
 
         # Post PR comment indicating it is not applyable
         if [ "$state" != "open" -o "$mergeable_state" != "clean" ]; then
-          gh pr comment "$PR_NUMBER" --body "Terraform apply via PR comment is blocked. Pull request must be open and mergeable (approved and status checks passing)"
+          gh --repo "$GITHUB_REPOSITORY" pr comment "$PR_NUMBER" --body "Terraform apply via PR comment is blocked. Pull request must be open and mergeable (approved and status checks passing)"
         fi
         
         echo "::set-output name=pr-mergeable-state::${mergeable_state}"
