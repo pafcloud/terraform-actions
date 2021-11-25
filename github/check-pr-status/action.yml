@@ -1,5 +1,5 @@
 name: Check pull request status
-description: Checks if a pull request is mergeable, posting a PR comment if this is not the case
+description: Checks if a pull request is applyable (mergeable)
 
 inputs:
   github-token:
@@ -11,13 +11,10 @@ inputs:
 
 outputs:
   pull-request-state:
-    description: Pull requrest state
     value: ${{ steps.check.outputs.pull-request-state }}
   pull-request-mergeable-state:
-    description: Pull request mergeable state
     value: ${{ steps.check.outputs.pull-request-mergeable-state }}
   pull-request-head-sha:
-    description: Head SHA
     value: ${{ steps.check.outputs.pull-request-head-sha }}
 
 runs:
@@ -31,13 +28,13 @@ runs:
         head_sha="$(jq -r .head.sha <<< $pr_json)"
 
         # Post PR comment indicating it is not applyable
-        if [ "$state" != "open" -o "$mergeable_state" != "clean" )) ]; then
-          gh pr comment $PR_NUMBER --body "Terraform apply via PR comment is blocked. Pull request must be open and mergeable (approved and status checks passing)"
+        if [ "$state" != "open" -o "$mergeable_state" != "clean" ]; then
+          gh pr comment "$PR_NUMBER" --body "Terraform apply via PR comment is blocked. Pull request must be open and mergeable (approved and status checks passing)"
         fi
         
-        echo ::set-output name=pull-request-mergeable-state::${mergeable_state}
-        echo ::set-output name=pull-request-state::${state}
-        echo ::set-output name=pull-request-head-sha::${head_sha}
+        echo "::set-output name=pull-request-mergeable-state::${mergeable_state}"
+        echo "::set-output name=pull-request-state::${state}"
+        echo "::set-output name=pull-request-head-sha::${head_sha}"
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
