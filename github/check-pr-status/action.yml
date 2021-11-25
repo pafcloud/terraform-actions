@@ -30,7 +30,7 @@ runs:
         state="$(jq -r .state <<< $pr_json)"
         head_sha="$(jq -r .head.sha <<< $pr_json)"
 
-        # Post PR comment indicating PR is not mergeable
+        # Post PR comment indicating it is not applyable
         if [ "$state" != "open" -o "$mergeable_state" != "clean" )) ]; then
           gh pr comment $PR_NUMBER --body "Terraform apply via PR comment is blocked. Pull request must be open and mergeable (approved and status checks passing)"
         fi
