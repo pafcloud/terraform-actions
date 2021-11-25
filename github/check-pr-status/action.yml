@@ -1,5 +1,5 @@
 name: Check pull request status
-description: Check pull request status and its mergeability. Optionally notify with comment.
+description: Checks if a pull request is mergeable, posting a PR comment if this is not the case
 
 inputs:
   github-token:
@@ -8,22 +8,6 @@ inputs:
   pull-request-number:
     description: Pull request number
     required: true
-  desired-pull-request-state:
-    description: Pull request state
-    required: false
-    default: open
-  desired-pull-request-mergeable-state:
-    description: Pull request mergeable state
-    required: false
-    default: clean
-  msg:
-    description: Message
-    required: false
-    default: Pull request should be open and mergeable
-  notify:
-    description: Whether notify when desired pr states are not met
-    required: false
-    default: true
 
 outputs:
   pull-request-state:
@@ -41,30 +25,14 @@ runs:
   steps:
     - id: check
       run: |
-        AUTH_HEADER="Authorization: Bearer ${{ inputs.github-token }}"
-        URL="https://api.github.com/repos/${{ github.repository }}/pulls/${{ inputs.pull-request-number }}"
+        pr_json="$(gh api repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER)"
+        mergeable_state="$(jq -r .mergeable_state <<< $pr_json)"
+        state="$(jq -r .state <<< $pr_json)"
+        head_sha="$(jq -r .head.sha <<< $pr_json)"
 
-        out="$(gh api repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER)"
-        mergeable_state=$(echo ${out} | jq -r .mergeable_state)
-        state=$(echo ${out} | jq -r .state)
-        head_sha=$(echo ${out} | jq -r .head.sha)
-
-        echo "out: $out"
-        echo "---"
-        echo "mergeable_state: $mergeable_state"
-        echo "---"
-        echo "state: $state"
-
-        # Notify
-        if [[ "${{ inputs.notify }}" == "true" && \
-              (( "${state}" != "${{ inputs.desired-pull-request-state }}" || \
-                 "${mergeable_state}" != "${{ inputs.desired-pull-request-mergeable-state }}" )) ]]; then
-          echo "Notifying ..."
-          ACCEPT_HEADER="Accept: application/vnd.github.v3+json"
-          CONTENT_HEADER="Content-Type: application/json"
-          PR_COMMENTS_URL="https://api.github.com/repos/${{ github.repository }}/issues/${{ inputs.pull-request-number }}/comments"
-          PAYLOAD=$(echo '{}' | jq --arg body "${{ inputs.msg }}" '.body = $body')
-          curl -sS -X POST -H "${AUTH_HEADER}" -H "${ACCEPT_HEADER}" -H "${CONTENT_HEADER}" -d "${PAYLOAD}" -L "${PR_COMMENTS_URL}" > /dev/null
+        # Post PR comment indicating PR is not mergeable
+        if [ "$state" != "open" -o "$mergeable_state" != "clean" )) ]; then
+          gh pr comment $PR_NUMBER --body "Terraform apply via PR comment is blocked. Pull request must be open and mergeable (approved and status checks passing)"
         fi
         
         echo ::set-output name=pull-request-mergeable-state::${mergeable_state}
