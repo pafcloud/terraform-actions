@@ -56,4 +56,4 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
         PR_NUMBER: ${{ inputs.pr-number }}
-        HEAD_COMMIT: ${{ inputs.head_commit }}
+        HEAD_COMMIT: ${{ inputs.head-commit }}
