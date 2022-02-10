@@ -25,7 +25,7 @@ runs:
       shell: bash
       run: |
         if [ -z "$GITHUB_WORKSPACE" ]; then
-            echo "ERROR: environment variable GITHUB_WORKSPACE is unset"
+            echo "ERROR: environment variable GITHUB_WORKSPACE is not set"
             exit 1
         fi
         
@@ -42,20 +42,19 @@ runs:
             done
         }
 
-        tf_version="$(upcat .terraform-version)"
-        tg_version="$(upcat .terragrunt-version)"
+        tf_version_from_file="$(upcat .terraform-version)"
+        tg_version_from_file="$(upcat .terragrunt-version)"
+        
+        tf_version="${tf_version_from_file:-$DEFAULT_TF_VERSION}"
+        tg_version="${tg_version_from_file:-$DEFAULT_TG_VERSION}"
 
-        if [[ -z "$tf_version" && -n "$DEFAULT_TF_VERSION" ]]; then
-            tf_version="$DEFAULT_TF_VERSION"
-        else
-            echo "ERROR: Cannot resolve terraform version (no .terraform-version file found)"
+        if [ -z "$tf_version" ]; then
+            echo "ERROR: Cannot resolve terraform version: no .terraform-version file found, and 'default-terraform-version' is not set"
             exit 2
         fi
-
-        if [[ -z "$tg_version" && -n "$DEFAULT_TG_VERSION" ]]; then
-            tg_version="$DEFAULT_TG_VERSION"
-        else
-            echo "ERROR: Cannot resolve terragrunt version (no .terragrunt-version file found)"
+        
+        if [ -z "$tg_version" ]; then
+            echo "ERROR: Cannot resolve terragrunt version (no .terragrunt-version file found, and 'default-terragrunt-version' is not set"
             exit 3
         fi
 
