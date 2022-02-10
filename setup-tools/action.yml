@@ -24,39 +24,39 @@ runs:
       working-directory: ${{ inputs.working-directory }}
       shell: bash
       run: |
-        if [ -n "$GITHUB_WORKSPACE" ]; then
-          search_stop_dir="$(dirname $GITHUB_WORKSPACE)"
-        else
+        if [ -z "$GITHUB_WORKSPACE" ]; then
           echo "ERROR: environment variable GITHUB_WORKSPACE is unset"
           exit 1
         fi
         
+        search_stop_dir="$(dirname $GITHUB_WORKSPACE)"
+        
         upcat() {
-            file="$1"
-            while [ "$PWD" != "$search_stop_dir" -a "$PWD" != "/" ]; do
-                if [ -r "$file" ]; then
-                    cat "$file"
-                    break
-                fi
-                cd ..
-            done
+          file="$1"
+          while [ "$PWD" != "$search_stop_dir" -a "$PWD" != "/" ]; do
+            if [ -r "$file" ]; then
+              cat "$file"
+              break
+             fi
+            cd ..
+          done
         }
 
         tf_version="$(upcat .terraform-version)"
         tg_version="$(upcat .terragrunt-version)"
 
         if [ -z "$tf_version" -a -n "$DEFAULT_TF_VERSION" ]; then
-            tf_version="$DEFAULT_TF_VERSION"
+          tf_version="$DEFAULT_TF_VERSION"
         else
-            echo "ERROR: Cannot resolve terraform version (no .terraform-version file found)"
-            exit 2
+          echo "ERROR: Cannot resolve terraform version (no .terraform-version file found)"
+          exit 2
         fi
 
         if [ -z "$tg_version" -a -n "$DEFAULT_TG_VERSION" ]; then
-            tg_version="$DEFAULT_TG_VERSION"
+          tg_version="$DEFAULT_TG_VERSION"
         else
-            echo "ERROR: Cannot resolve terragrunt version (no .terragrunt-version file found)"
-            exit 3
+          echo "ERROR: Cannot resolve terragrunt version (no .terragrunt-version file found)"
+          exit 3
         fi
 
         echo "::set-output name=tf-version::$tf_version"
