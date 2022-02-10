@@ -20,7 +20,7 @@ runs:
   using: composite
   steps: 
     - id: resolve-versions
-      name: Resolve desired terraform and terragrunt versions
+      name: Resolve terraform and terragrunt versions
       working-directory: ${{ inputs.working-directory }}
       shell: bash
       run: |
@@ -72,8 +72,9 @@ runs:
     - name: Setup terragrunt
       shell: bash
       run: |
-        bin_download_url="${DOWNLOAD_BASE_URL}/terragrunt_linux_amd64"
-        shasums_download_url="${DOWNLOAD_BASE_URL}/SHA256SUMS"
+        download_base_url="https://github.com/gruntwork-io/terragrunt/releases/download/v$TERRAGRUNT_VERSION"
+        bin_download_url="${download_base_url}/terragrunt_linux_amd64"
+        shasums_download_url="${download_base_url}/SHA256SUMS"
         curl -fsSLOJ "$bin_download_url"
         curl -fsSLOJ "$shasums_download_url"
         sha256sum -c --ignore-missing 2>/dev/null SHA256SUMS
@@ -84,4 +85,4 @@ runs:
         chmod +x "$terragrunt_bin"
         echo "$tmp_bin_dir" >> $GITHUB_PATH
       env:
-        DOWNLOAD_BASE_URL: https://github.com/gruntwork-io/terragrunt/releases/download/v${{ steps.resolve-versions.outputs.tg-version }}
+        TERRAGRUNT_VERSION: ${{ steps.resolve-versions.outputs.tg-version }}
