@@ -1,0 +1,45 @@
+name: Asserts that state is unchanged
+description: Fetches saved terraform state serial and compares it to the most recent one.
+
+inputs:
+  pr-number:
+    description: Pull request number
+    required: true
+  working-directory:
+    description: Working directory
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - run: |
+        # Fetch state serials: current from state and saved from actions artifacts
+        CURRENT_STATE_SERIAL=${RUNNER_TEMP}/state-serial.cur
+        ARTIFACT_NAME=$(echo ${WORKING_DIRECTORY}_${PR_NUMBER} | tr '":<>|*?\\/' .)
+        SAVED_STATE_SERIAL="${RUNNER_TEMP}/state-serial"
+        terragrunt state pull --terragrunt-tfpath terraform-bin | jq -r .serial > ${CURRENT_STATE_SERIAL}
+
+        echo "::debug::artifact name: ${ARTIFACT_NAME}"
+
+        error() {
+          gh pr comment ${PR_NUMBER} --body "$@"
+          exit 1
+        }
+
+        RC=0
+        gh run download -n "${ARTIFACT_NAME}" -D ${RUNNER_TEMP} || RC=$?
+        if [[ ${RC} -ne 0 || ! -f "${SAVED_STATE_SERIAL}" ]]; then
+          # Artifact expired or not found.
+          error "The given terraform plan can no longer be applied because saved terraform state serial is removed from github run artifacts (by default after 90 days). Try re-running the plan or open new pr."
+        fi
+
+        echo "::debug::current state serial: $(< ${CURRENT_STATE_SERIAL})"
+        echo "::debug::saved state serial: $(< ${SAVED_STATE_SERIAL})"
+
+        cmp ${CURRENT_STATE_SERIAL} ${SAVED_STATE_SERIAL} || error "The given terraform plan can no longer be applied because the state was changed by another operation after the plan was created. Try merging or rebasing fresh base branch to this branch - or open new pr."
+
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        WORKING_DIRECTORY: ${{ inputs.working-directory }}
+        PR_NUMBER: ${{ inputs.pr-number }}
