@@ -7,13 +7,13 @@ description: >
 
 inputs:
   working-directory:
-    description: Directory that is searched for version files. Search includes parent directories up to GITHUB_WORKSPACE
+    description: Directory that is scanned for version files. Scan includes parent directories up to GITHUB_WORKSPACE
     required: true
   default-terraform-version:
-    description: Optional default terraform version, if no .terraform-version file is found
+    description: Default terraform version. If unspecified, a .terraform-version file must be found or this action will fail
     required: false
   default-terragrunt-version:
-    description: Optional default terragrunt version, if no .terragrunt-version file is found
+    description: Default terragrunt version. If unspecified, a .terragrunt-version file must be found or this action will fail
     required: false
 
 runs:
