@@ -36,7 +36,7 @@ runs:
         echo "::debug::current state serial: $(< ${CURRENT_STATE_SERIAL})"
         echo "::debug::saved state serial: $(< ${SAVED_STATE_SERIAL})"
 
-        cmp ${CURRENT_STATE_SERIAL} ${SAVED_STATE_SERIAL} || error "The given terraform plan can no longer be applied because the state was changed by another operation after the plan was created. Try merging or rebasing fresh base branch to this branch - or open new pr."
+        cmp ${CURRENT_STATE_SERIAL} ${SAVED_STATE_SERIAL} || error "Current terraform plan can no longer be applied because the state was changed by another operation after the plan was created. Update the pull request branch from base branch to run terraform plan again"
 
       shell: bash
       working-directory: ${{ inputs.working-directory }}
