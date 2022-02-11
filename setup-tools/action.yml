@@ -1,0 +1,88 @@
+name: setup-tools
+description: >
+  Sets up desired versions of terraform and terragrunt by first searching
+  .terraform-version and .terragrunt-version files in the current working
+  directory and its parents, falling back to optional default versions, and
+  failing early if no version can be resolved for either tool
+
+inputs:
+  working-directory:
+    description: Directory that is scanned for tool version files. Scan includes parent directories up to GITHUB_WORKSPACE
+    required: true
+  default-terraform-version:
+    description: Default terraform version. If unspecified, a .terraform-version file must be found, or this action will fail
+    required: false
+  default-terragrunt-version:
+    description: Default terragrunt version. If unspecified, a .terragrunt-version file must be found, or this action will fail
+    required: false
+
+runs:
+  using: composite
+  steps: 
+    - id: resolve-versions
+      name: Resolve terraform and terragrunt versions
+      working-directory: ${{ inputs.working-directory }}
+      shell: bash
+      run: |
+        if [ -z "$GITHUB_WORKSPACE" ]; then
+            echo "ERROR: environment variable GITHUB_WORKSPACE is unset"
+            exit 1
+        fi
+        
+        search_stop_dir="$(dirname $GITHUB_WORKSPACE)"
+        
+        upcat() {
+            file="$1"
+            while [ "$PWD" != "$search_stop_dir" -a "$PWD" != "/" ]; do
+                if [ -r "$file" ]; then
+                    cat "$file"
+                    break
+                fi
+                cd ..
+            done
+        }
+
+        tf_version_from_file="$(upcat .terraform-version)"
+        tg_version_from_file="$(upcat .terragrunt-version)"
+        
+        tf_version="${tf_version_from_file:-$DEFAULT_TF_VERSION}"
+        tg_version="${tg_version_from_file:-$DEFAULT_TG_VERSION}"
+
+        if [ -z "$tf_version" ]; then
+            echo "ERROR: Cannot resolve terraform version: no .terraform-version file found, and no default version is specified"
+            exit 2
+        fi
+        
+        if [ -z "$tg_version" ]; then
+            echo "ERROR: Cannot resolve terragrunt version: no .terragrunt-version file found, and no default version is specified"
+            exit 3
+        fi
+
+        echo "::set-output name=tf-version::$tf_version"
+        echo "::set-output name=tg-version::$tg_version"
+      env:
+        DEFAULT_TF_VERSION: ${{ inputs.default-terraform-version }}
+        DEFAULT_TG_VERSION: ${{ inputs.default-terragrunt-version }}
+  
+    - name: Setup terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: ${{ steps.resolve-versions.outputs.tf-version }}
+    
+    - name: Setup terragrunt
+      shell: bash
+      run: |
+        download_base_url="https://github.com/gruntwork-io/terragrunt/releases/download/v$TERRAGRUNT_VERSION"
+        bin_download_url="${download_base_url}/terragrunt_linux_amd64"
+        shasums_download_url="${download_base_url}/SHA256SUMS"
+        curl -fsSLOJ "$bin_download_url"
+        curl -fsSLOJ "$shasums_download_url"
+        sha256sum -c --ignore-missing 2>/dev/null SHA256SUMS
+        tmp_bin_dir="$(mktemp -d $RUNNER_TEMP/XXXXXXXXXX)"
+        terragrunt_bin="$tmp_bin_dir/terragrunt"
+        mv terragrunt_linux_amd64 "$terragrunt_bin"
+        rm SHA256SUMS
+        chmod +x "$terragrunt_bin"
+        echo "$tmp_bin_dir" >> $GITHUB_PATH
+      env:
+        TERRAGRUNT_VERSION: ${{ steps.resolve-versions.outputs.tg-version }}
