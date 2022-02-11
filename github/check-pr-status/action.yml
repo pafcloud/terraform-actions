@@ -16,6 +16,8 @@ outputs:
     value: ${{ steps.check.outputs.pr-mergeable-state }}
   pr-head-sha:
     value: ${{ steps.check.outputs.pr-head-sha }}
+  pr-merge-commit-sha:
+    value: ${{ steps.check.outputs.pr-merge-commit-sha }}
 
 runs:
   using: composite
@@ -26,15 +28,17 @@ runs:
         mergeable_state="$(jq -r .mergeable_state <<< $pr_json)"
         state="$(jq -r .state <<< $pr_json)"
         head_sha="$(jq -r .head.sha <<< $pr_json)"
+        merge_commit_sha="$(jq -r .merge_commit_sha <<< $pr_json)"
 
         # Post PR comment indicating it is not applyable
         if [ "$state" != "open" -o "$mergeable_state" != "clean" ]; then
           gh --repo "$GITHUB_REPOSITORY" pr comment "$PR_NUMBER" --body "Terraform apply via PR comment is blocked. Pull request must be open and mergeable (approved and status checks passing)"
         fi
-        
+
         echo "::set-output name=pr-mergeable-state::${mergeable_state}"
         echo "::set-output name=pr-state::${state}"
         echo "::set-output name=pr-head-sha::${head_sha}"
+        echo "::set-output name=pr-merge-commit-sha::${merge_commit_sha}"
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
