@@ -3,7 +3,7 @@ description: >
   Sets up desired versions of terraform and terragrunt by first searching
   .terraform-version and .terragrunt-version files in the current working
   directory and its parents, falling back to optional default versions, and
-  failing fast if no version can be resolved for either tool
+  failing early if no version can be resolved for either tool
 
 inputs:
   working-directory:
