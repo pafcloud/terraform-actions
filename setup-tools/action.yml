@@ -49,12 +49,12 @@ runs:
         tg_version="${tg_version_from_file:-$DEFAULT_TG_VERSION}"
 
         if [ -z "$tf_version" ]; then
-            echo "ERROR: Cannot resolve terraform version: no .terraform-version file found, and 'default-terraform-version' is not set"
+            echo "ERROR: Cannot resolve terraform version: no .terraform-version file found, and no default version is specified"
             exit 2
         fi
         
         if [ -z "$tg_version" ]; then
-            echo "ERROR: Cannot resolve terragrunt version (no .terragrunt-version file found, and 'default-terragrunt-version' is not set"
+            echo "ERROR: Cannot resolve terragrunt version: no .terragrunt-version file found, and no default version is specified"
             exit 3
         fi
 
