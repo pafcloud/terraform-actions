@@ -1,4 +1,4 @@
-name: Asserts that state is unchanged
+name: Asserts that terraform state is unchanged
 description: Fetches saved terraform state serial and compares it to the most recent one, failing fast if there is a difference
 
 inputs:
