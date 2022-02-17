@@ -1,0 +1,34 @@
+name: Save terraform state serial number to actions artifacts.
+
+inputs:
+  pr-number:
+    description: Pull request number
+    required: true
+  working-directory:
+    description: Working directory
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Save state serial
+      id: save-serial
+      run: |
+        ARTIFACT_NAME=$(echo ${WORKING_DIRECTORY}_${PR_NUMBER} | tr '":<>|*?\\/' .)
+        STATE_SERIAL_PATH="${RUNNER_TEMP}/state-serial"
+
+        # call real terraform binary to get proper output
+        terragrunt state pull --terragrunt-tfpath terraform-bin | jq -r .serial > ${STATE_SERIAL_PATH}
+
+        echo ::set-output name=artifact-name::${ARTIFACT_NAME}
+        echo ::set-output name=path::${STATE_SERIAL_PATH}
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        WORKING_DIRECTORY: ${{ inputs.working-directory }}
+        PR_NUMBER: ${{ inputs.pr-number}}
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: ${{ steps.save-serial.outputs.artifact-name }}
+        path: ${{ steps.save-serial.outputs.path }}
