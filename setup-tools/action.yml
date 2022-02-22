@@ -76,10 +76,10 @@ runs:
         bin_download_url="${download_base_url}/terragrunt_linux_amd64"
         shasums_download_url="${download_base_url}/SHA256SUMS"
         for t in 0 1 2 5; do
-          sleep $t && curl -fsSLO "$bin_download_url" && break
+          sleep $t && curl -fsSLOJ "$bin_download_url" && break
         done
         for t in 0 1 2 5; do
-          sleep $t && curl -fsSLO "$shasums_download_url" && break
+          sleep $t && curl -fsSLOJ "$shasums_download_url" && break
         done
         sha256sum -c --ignore-missing 2>/dev/null SHA256SUMS
         tmp_bin_dir="$(mktemp -d $RUNNER_TEMP/XXXXXXXXXX)"
