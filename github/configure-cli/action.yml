@@ -33,7 +33,7 @@ runs:
 
         if [ ! -z "$GPG_KEY_ID" -a ! -z "$GPG_KEY_PEM" ]; then
           echo "Configuring git GPG signing key"
-          if gpg --list-keys "$GPG_KEY_ID" >/dev/null 2>&1; then
+          if ! gpg --list-keys "$GPG_KEY_ID" >/dev/null 2>&1; then
             echo -n "$GPG_KEY_PEM" | gpg --batch --quiet --no-tty --import
             echo -e "5\ny\n" | gpg --batch --quiet --no-tty --command-fd 0 --edit-key "$GPG_KEY_ID" trust
           fi
