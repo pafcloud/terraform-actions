@@ -36,6 +36,7 @@ runs:
           content="${{ format('{0}{1}', inputs.terraform-stdout, inputs.terraform-stderr) }}"
         fi
         echo "::set-output name=content::$content"
+      shell: bash
       env:
         MAX_SZ=65000
 
