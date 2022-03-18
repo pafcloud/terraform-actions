@@ -36,8 +36,10 @@ runs:
 
           if (output.length > maxSz)
             core.setOutput("content", output.substring(0, maxSz) + "...\nOutput truncated.");
-          else
+          else {
             core.setOutput("content", output);
+            core.setOutput("foo", "bar");
+          }
 
     - run: |
         details() {
