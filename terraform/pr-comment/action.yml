@@ -38,7 +38,7 @@ runs:
         echo "::set-output name=content::$content"
       shell: bash
       env:
-        MAX_SZ=65000
+        MAX_SZ: 65000
 
     - run: |
         details() {
