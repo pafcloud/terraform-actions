@@ -27,10 +27,12 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: truncate
+    - id: truncate
       uses: actions/github-script@v6
       with:
         script: |
+          console.log(core.getInput('terraform-stdout'));
+          console.log(core.getInput('terraform-stderr'));
           const output = core.getInput('terraform-stdout') + core.getInput('terraform-stderr');
           const maxSz = 65000;
 
