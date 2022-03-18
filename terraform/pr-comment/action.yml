@@ -31,8 +31,8 @@ runs:
       uses: actions/github-script@v6
       with:
         script: |
-          console.log(core.getInput('terraform-stdout'));
-          console.log(core.getInput('terraform-stderr'));
+          console.log("tf-stdout:", core.getInput('terraform-stdout'));
+          console.log("tf-stderr:", core.getInput('terraform-stderr'));
           const output = core.getInput('terraform-stdout') + core.getInput('terraform-stderr');
           const maxSz = 65000;
 
