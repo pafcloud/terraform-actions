@@ -27,6 +27,18 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: truncate
+      run: |
+        sz=$(echo '${{ format('{0}{1}', inputs.terraform-stdout, inputs.terraform-stderr) }}' | wc -c)
+        if [ $sz -ge $MAX_SZ ]; then
+          content=$(echo '${{ format('{0}{1}', inputs.terraform-stdout, inputs.terraform-stderr) }}' | cut -c-$MAX_SZ | awk '{print $0 "...\nOutput truncated."}')
+        else
+          content="${{ format('{0}{1}', inputs.terraform-stdout, inputs.terraform-stderr) }}"
+        fi
+        echo "::set-output name=content::$content"
+      env:
+        MAX_SZ=65000
+
     - run: |
         details() {
           local fmt="$1"
@@ -130,7 +142,7 @@ runs:
       env:
         RUN_TYPE: ${{ inputs.terraform-run-type }}
         WORKING_DIRECTORY: ${{ inputs.working-directory }}
-        INPUT: ${{ format('{0}{1}', inputs.terraform-stdout, inputs.terraform-stderr) }}
+        INPUT: ${{ steps.truncate.outputs.content }}
         EXIT_CODE: ${{ inputs.terraform-exit-code }}
         PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
