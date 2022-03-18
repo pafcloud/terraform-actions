@@ -28,17 +28,16 @@ runs:
   using: composite
   steps:
     - name: truncate
-      run: |
-        sz=$(echo '${{ format('{0}{1}', inputs.terraform-stdout, inputs.terraform-stderr) }}' | wc -c)
-        if [ $sz -ge $MAX_SZ ]; then
-          content=$(echo '${{ format('{0}{1}', inputs.terraform-stdout, inputs.terraform-stderr) }}' | cut -c-$MAX_SZ | awk '{print $0 "...\nOutput truncated."}')
-        else
-          content="${{ format('{0}{1}', inputs.terraform-stdout, inputs.terraform-stderr) }}"
-        fi
-        echo "::set-output name=content::$content"
-      shell: bash
-      env:
-        MAX_SZ: 65000
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const output = core.getInput('terraform-stdout') + core.getInput('terraform-stderr');
+          const maxSz = 65000;
+
+          if (output.length > maxSz)
+            core.setOutput("content", output.substring(0, maxSz) + "...\nOutput truncated.");
+          else
+            core.setOutput("content", output);
 
     - run: |
         details() {
