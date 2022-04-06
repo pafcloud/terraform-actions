@@ -34,6 +34,7 @@ runs:
           console.log("asd");
           console.log("tf-stdout:", core.getMultilineInput('terraform-stdout'));
           console.log("tf-stderr:", core.getMultilineInput('terraform-stderr'));
+          console.log(context);
           const output = core.getMultilineInput('terraform-stdout') + core.getMultilineInput('terraform-stderr');
           const maxSz = 65000;
 
