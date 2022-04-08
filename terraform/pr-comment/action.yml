@@ -27,23 +27,22 @@ inputs:
 runs:
   using: composite
   steps:
-    - id: truncate
-      uses: actions/github-script@v6
+    - uses: DamianReeves/write-file-action@v1.0
       with:
-        script: |
-          console.log("asd");
-          console.log("tf-stdout:", core.getMultilineInput('terraform-stdout'));
-          console.log("tf-stderr:", core.getMultilineInput('terraform-stderr'));
-          console.log(context);
-          const output = core.getMultilineInput('terraform-stdout') + core.getMultilineInput('terraform-stderr');
-          const maxSz = 65000;
+        path: terraform-stdout-err
+        contents: ${{ inputs.terraform-stdout }}{{ inputs.terraform-stderr }}
+        write-mode: overwrite
 
-          if (output.length > maxSz)
-            core.setOutput("content", output.substring(0, maxSz) + "...\nOutput truncated.");
-          else {
-            core.setOutput("content", output);
-            core.setOutput("foo", "bar");
-          }
+    - id: truncate
+      run: |
+        sz=$(wc -c terraform-stdout-err)
+        if [ $sz -gt 65000 ]; then
+          out=$(head -c 65000 terraform-stdout-err && echo -e "...\nOutput truncated.")
+        else
+          out=$(<terraform-stdout-err)
+        fi
+
+        echo "::set-output:name=content:$out"
 
     - run: |
         details() {
