@@ -42,7 +42,8 @@ runs:
           out=$(<terraform-stdout-err)
         fi
 
-        echo "::set-output:name=content:$out"
+        echo "::set-output name=content::$out"
+      shell: bash
 
     - run: |
         details() {
