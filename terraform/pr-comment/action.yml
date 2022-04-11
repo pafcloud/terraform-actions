@@ -42,7 +42,7 @@ runs:
           out=$(<terraform-stdout-err)
         fi
 
-        echo "::set-output name=content::${out//$'\n'/\\n}" # \n => \\n
+        echo "::set-output name=content::${out//$'\n'/%0A}" # \n => %0A
       shell: bash
 
     - run: |
