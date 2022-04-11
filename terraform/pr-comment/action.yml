@@ -30,7 +30,7 @@ runs:
     - uses: DamianReeves/write-file-action@v1.0
       with:
         path: terraform-stdout-err
-        contents: ${{ inputs.terraform-stdout }}{{ inputs.terraform-stderr }}
+        contents: ${{ inputs.terraform-stdout }}${{ inputs.terraform-stderr }}
         write-mode: overwrite
 
     - id: truncate
