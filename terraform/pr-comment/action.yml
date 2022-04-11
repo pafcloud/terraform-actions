@@ -35,6 +35,7 @@ runs:
 
     - id: truncate
       run: |
+        # Github pr comment is limited to 65536 chars. Truncate it.
         sz=$(wc -c < terraform-stdout-err)
         if [ $sz -gt 5000 ]; then
           out=$(head -c 5000 terraform-stdout-err && echo -e "...%0AOutput truncated.")
@@ -106,8 +107,6 @@ runs:
           echo
           echo "Please run terraform destroy manually (do \`git checkout $3\` to restore \`terragrunt.hcl\`)"
         }
-
-        INPUT=${INPUT::65000} # Github pr comment is limited to 65536 chars. Truncate it.
 
         case "${RUN_TYPE}" in
           plan-for-apply|plan-for-destroy)
