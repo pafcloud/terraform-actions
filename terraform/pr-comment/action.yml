@@ -37,7 +37,7 @@ runs:
       run: |
         sz=$(wc -c < terraform-stdout-err)
         if [ $sz -gt 5000 ]; then
-          out=$(head -c 5000 terraform-stdout-err && echo -e "...\nOutput truncated.")
+          out=$(head -c 5000 terraform-stdout-err && echo -e "...%0AOutput truncated.")
         else
           out=$(<terraform-stdout-err)
         fi
