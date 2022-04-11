@@ -35,15 +35,14 @@ runs:
 
     - id: truncate
       run: |
-        sz=$(wc -c terraform-stdout-err)
+        sz=$(wc -c < terraform-stdout-err)
         if [ $sz -gt 65000 ]; then
           out=$(head -c 65000 terraform-stdout-err && echo -e "...\nOutput truncated.")
         else
           out=$(<terraform-stdout-err)
         fi
 
-        echo "::set-output name=content::$out"
-      shell: bash
+        echo "::set-output name=content::${out//$'\n'/\\n}" # \n => \\n      shell: bash
 
     - run: |
         details() {
