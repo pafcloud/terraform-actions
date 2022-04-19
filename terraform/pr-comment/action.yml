@@ -27,24 +27,11 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: DamianReeves/write-file-action@v1.0
-      with:
-        path: terraform-stdout-err
-        contents: ${{ inputs.terraform-stdout }}${{ inputs.terraform-stderr }}
-        write-mode: overwrite
-
     - id: truncate
-      run: |
-        # Github pr comment is limited to 65536 chars. Truncate it.
-        sz=$(wc -c < terraform-stdout-err)
-        if [ $sz -gt 5000 ]; then
-          out=$(head -c 5000 terraform-stdout-err && echo -e "...%0AOutput truncated.")
-        else
-          out=$(<terraform-stdout-err)
-        fi
-
-        echo "::set-output name=content::${out//$'\n'/%0A}" # \n => %0A
-      shell: bash
+      uses: pafcloud/truncate-string@main
+      with:
+        string: ${{ inputs.terraform-stdout }}${{ inputs.terraform-stderr }}
+        max-length: 65000
 
     - run: |
         details() {
@@ -147,7 +134,7 @@ runs:
       env:
         RUN_TYPE: ${{ inputs.terraform-run-type }}
         WORKING_DIRECTORY: ${{ inputs.working-directory }}
-        INPUT: ${{ steps.truncate.outputs.content }}
+        INPUT: ${{ steps.truncate.outputs.string }}
         EXIT_CODE: ${{ inputs.terraform-exit-code }}
         PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
