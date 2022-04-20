@@ -31,7 +31,9 @@ runs:
       uses: pafcloud/truncate-string@main
       with:
         string: ${{ inputs.terraform-stdout }}${{ inputs.terraform-stderr }}
-        max-length: 65000
+        max-length: 40
+        message: ...%A0Output truncated.
+        
 
     - run: |
         details() {
