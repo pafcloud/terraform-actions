@@ -32,7 +32,7 @@ runs:
       with:
         string: ${{ inputs.terraform-stdout }}${{ inputs.terraform-stderr }}
         max-length: 40
-        message: ...%A0Output truncated.
+        message: ...\nOutput truncated.
         
 
     - run: |
