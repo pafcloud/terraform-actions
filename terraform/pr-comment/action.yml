@@ -27,6 +27,15 @@ inputs:
 runs:
   using: composite
   steps:
+    - id: truncate
+      uses: pafcloud/truncate-string@v0.1.0
+      with:
+        string: ${{ inputs.terraform-stdout }}${{ inputs.terraform-stderr }}
+        max-length: 65000
+        message: |
+          ...
+          [Output truncated, see logs for complete output.]
+
     - run: |
         details() {
           local fmt="$1"
@@ -128,7 +137,7 @@ runs:
       env:
         RUN_TYPE: ${{ inputs.terraform-run-type }}
         WORKING_DIRECTORY: ${{ inputs.working-directory }}
-        INPUT: ${{ format('{0}{1}', inputs.terraform-stdout, inputs.terraform-stderr) }}
+        INPUT: ${{ steps.truncate.outputs.string }}
         EXIT_CODE: ${{ inputs.terraform-exit-code }}
         PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
