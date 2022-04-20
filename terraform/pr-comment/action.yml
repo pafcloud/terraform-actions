@@ -28,7 +28,7 @@ runs:
   using: composite
   steps:
     - id: truncate
-      uses: pafcloud/truncate-string@main
+      uses: pafcloud/truncate-string@add-msg
       with:
         string: ${{ inputs.terraform-stdout }}${{ inputs.terraform-stderr }}
         max-length: 40
