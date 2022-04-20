@@ -28,14 +28,13 @@ runs:
   using: composite
   steps:
     - id: truncate
-      uses: pafcloud/truncate-string@add-msg
+      uses: pafcloud/truncate-string@v0.1.0
       with:
         string: ${{ inputs.terraform-stdout }}${{ inputs.terraform-stderr }}
         max-length: 65000
         message: |
           ...
-          Output truncated.
-        
+          [Output truncated, see logs for complete output.]
 
     - run: |
         details() {
