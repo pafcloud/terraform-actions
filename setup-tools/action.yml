@@ -15,6 +15,10 @@ inputs:
   default-terragrunt-version:
     description: Default terragrunt version. If unspecified, a .terragrunt-version file must be found, or this action will fail
     required: false
+  install-terraform-wrapper:
+    description: Install terraform wrapper script that automatically exposes stdout, stderr and exit code as outputs?
+    required: false
+    default: true
 
 runs:
   using: composite
@@ -68,6 +72,7 @@ runs:
       uses: hashicorp/setup-terraform@v1
       with:
         terraform_version: ${{ steps.resolve-versions.outputs.tf-version }}
+        terraform_wrapper: ${{ inputs.install-terraform-wrapper }}
     
     - name: Setup terragrunt
       shell: bash
