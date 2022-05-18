@@ -5,11 +5,8 @@ inputs:
   github-token:
     description: GitHub auth token
     required: true
-  terraform-stdout:
-    description: Terraform standard out
-    required: true
-  terraform-stderr:
-    description: Terraform standard err
+  terraform-output:
+    description: Terraform output (stdout)
     required: true
   terraform-exit-code:
     description: Terraform exit code
@@ -92,28 +89,28 @@ runs:
         case "${RUN_TYPE}" in
           plan-for-apply|plan-for-destroy)
             if [ ${EXIT_CODE} -eq 0 ]; then
-              MSG=$(plan_msg "${WORKING_DIRECTORY}" "${INPUT}" "${RUN_TYPE}")
+              MSG=$(plan_msg "${WORKING_DIRECTORY}" "${OUTPUT}" "${RUN_TYPE}")
             else
-              MSG=$(failed_plan_msg "${WORKING_DIRECTORY}" "${INPUT}")
+              MSG=$(failed_plan_msg "${WORKING_DIRECTORY}" "${OUTPUT}")
             fi
             ;;
 
           apply-on-comment|apply-on-merge)
             if [ $EXIT_CODE -eq 0 ]; then
-              MSG=$(apply_msg "${WORKING_DIRECTORY}" "${INPUT}" "${RUN_TYPE}")
+              MSG=$(apply_msg "${WORKING_DIRECTORY}" "${OUTPUT}" "${RUN_TYPE}")
             else
-              MSG=$(failed_apply_msg "${WORKING_DIRECTORY}" "${INPUT}")
+              MSG=$(failed_apply_msg "${WORKING_DIRECTORY}" "${OUTPUT}")
             fi
             ;;
 
           destroy-on-merge)
             if [ $EXIT_CODE -eq 0 ]; then
-              MSG=$(destroy_msg "${WORKING_DIRECTORY}" "${INPUT}")
+              MSG=$(destroy_msg "${WORKING_DIRECTORY}" "${OUTPUT}")
             else
               auth="Authorization: Bearer ${{ inputs.github-token }}"
               pr_url="https://api.github.com/repos/${{ github.repository }}/pulls/${{ inputs.pull-request-number }}"
               pr_base_sha=$(curl -sH "$auth" "$pr_url" | jq -r .base.sha)
-              MSG=$(failed_destroy_msg "${WORKING_DIRECTORY}" "${INPUT}" "${pr_base_sha}")
+              MSG=$(failed_destroy_msg "${WORKING_DIRECTORY}" "${OUTPUT}" "${pr_base_sha}")
             fi
             ;;
 
@@ -128,7 +125,7 @@ runs:
       env:
         RUN_TYPE: ${{ inputs.terraform-run-type }}
         WORKING_DIRECTORY: ${{ inputs.working-directory }}
-        INPUT: ${{ format('{0}{1}', inputs.terraform-stdout, inputs.terraform-stderr) }}
+        OUTPUT: ${{ inputs.terraform-output }}
         EXIT_CODE: ${{ inputs.terraform-exit-code }}
         PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
