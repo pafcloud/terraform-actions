@@ -17,8 +17,11 @@ runs:
         ARTIFACT_NAME=$(echo ${WORKING_DIRECTORY}_${PR_NUMBER} | tr '":<>|*?\\/' .)
         STATE_SERIAL_PATH="${RUNNER_TEMP}/state-serial"
 
-        # call real terraform binary to get proper output
-        terragrunt state pull --terragrunt-tfpath terraform-bin | jq -r .serial > ${STATE_SERIAL_PATH}
+        # Call real terraform binary to get proper output. By default setup-terraform adds a wrapper and real binary
+        # is in path with name terraform-bin.
+        terraform=terraform
+        command -v terraform-bin &> /dev/null && terraform=terraform-bin
+        terragrunt state pull --terragrunt-tfpath $terraform | jq -r .serial > ${STATE_SERIAL_PATH}
 
         echo ::set-output name=artifact-name::${ARTIFACT_NAME}
         echo ::set-output name=path::${STATE_SERIAL_PATH}
