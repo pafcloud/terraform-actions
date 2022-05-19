@@ -2,8 +2,8 @@ name: run-terragrunt
 description: >
   Runs terragrunt non-interactively (implicitly setting TF_IN_AUTOMATION=yes and TF_INPUT=false), with given command line arguments,
   in given working directory, and emits the resulting exit code and output. To customize behavior, TERRAGRUNT_* and TF_* environment 
-  variables can be specified by the caller. See https://www.terraform.io/cli/config/environment-variables and
-  https://terragrunt.gruntwork.io/docs/reference/cli-options/#cli-options for available variables.
+  variables and/or CLI flags can be specified by the caller. See e.g. https://www.terraform.io/cli/config/environment-variables and
+  https://terragrunt.gruntwork.io/docs/reference/cli-options/#cli-options.
 
 inputs:
   cmd-line-args:
