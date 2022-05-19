@@ -33,17 +33,18 @@ runs:
   using: composite
   steps: 
     - id: this
-      shell: bash
+      shell: bash --noprofile --norc -o pipefail {0}
       run: |
-        set -o pipefail
         output_file="$(mktemp /tmp/terragrunt-output.XXXXXXXX)"
         terragrunt $CMD_LINE_ARGS 2>&1 | tee $output_file
-        echo "::set-output name=exit-code::$?"
+        exit_code="$?"
+        echo "::set-output name=exit-code::$exit_code"
         if [ "$(wc -c < $output_file)" -gt "$MAX_OUTPUT_LENGTH" ]; then
           echo "::set-output name=output::$(head -c $MAX_OUTPUT_LENGTH $output_file | echo -e "$(cat -)$ON_TRUNCATE_MSG" | perl -pe 's/\n$/%0A/g')"
         else
           echo "::set-output name=output::$(perl -pe 's/\n$/%0A/g' < $output_file)"
         fi
+        exit $exit_code
       working-directory: ${{ inputs.working-directory }}
       env:
         CMD_LINE_ARGS: ${{ inputs.cmd-line-args }}
