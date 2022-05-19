@@ -9,7 +9,7 @@ inputs:
     description: Working directory, in which the terragrunt command is run
     required: true
   max-output-length:
-    description: Maximum output length (combined stdout and stderr) in characters
+    description: Maximum output length (combined stdout + stderr), in characters
     required: false
     default: 65000
   on-truncate-message:
@@ -20,7 +20,11 @@ inputs:
     description: Terragrunt log level, see https://terragrunt.gruntwork.io/docs/reference/cli-options/#terragrunt-log-level
     required: false
     default: warn
-  
+  terraform-log-level:
+    description: Terraform log level, see https://www.terraform.io/cli/config/environment-variables#tf_log
+    required: false
+    default: info
+
 outputs:
   output:
     description: Terragrunt output (stdout + stderr)
@@ -50,7 +54,10 @@ runs:
         MAX_OUTPUT_LENGTH: ${{ inputs.max-output-length }}
         ON_TRUNCATE_MSG: ${{ inputs.on-truncate-message }}
         TERRAGRUNT_LOG_LEVEL: ${{ inputs.terragrunt-log-level }}
+        TF_LOG: ${{ inputs.terraform-log-level }}
         # See https://github.com/gruntwork-io/terragrunt/issues/390
         TF_CLI_ARGS_init: -no-color
         # See https://www.terraform.io/cli/config/environment-variables#tf_in_automation
         TF_IN_AUTOMATION: yes
+        # See https://www.terraform.io/cli/config/environment-variables#tf_input
+        TF_INPUT: false
