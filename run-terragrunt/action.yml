@@ -9,7 +9,7 @@ inputs:
     description: Working directory, in which the terragrunt command is run
     required: true
   max-output-length:
-    description: Maximum output length (chars, stdout + stderr), including message
+    description: Maximum output length (stdout + stderr) in chars, including message (see below)
     required: false
     default: 65000
   on-truncate-message:
