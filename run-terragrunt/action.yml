@@ -1,5 +1,9 @@
 name: run-terragrunt
-description: Runs terragrunt with given command line arguments
+description: >
+  Runs terragrunt non-interactively (implicitly setting TF_IN_AUTOMATION=yes and TF_INPUT=false), with given command line arguments,
+  in given working directory, and emits the resulting exit code and output. To customize behavior, TERRAGRUNT_* and TF_* environment 
+  variables can be specified by the caller. See https://www.terraform.io/cli/config/environment-variables and
+  https://terragrunt.gruntwork.io/docs/reference/cli-options/#cli-options for available variables.
 
 inputs:
   cmd-line-args:
@@ -16,14 +20,6 @@ inputs:
     description: Message to append to output, if it gets truncated due to exceeding max length
     required: false
     default: "\n[output truncated, see workflow logs for complete output]"
-  terragrunt-log-level:
-    description: Terragrunt log level, see https://terragrunt.gruntwork.io/docs/reference/cli-options/#terragrunt-log-level
-    required: false
-    default: warn
-  terraform-log-level:
-    description: Terraform log level, see https://www.terraform.io/cli/config/environment-variables#tf_log
-    required: false
-    default: info
 
 outputs:
   output:
@@ -53,8 +49,6 @@ runs:
         CMD_LINE_ARGS: ${{ inputs.cmd-line-args }}
         MAX_OUTPUT_LENGTH: ${{ inputs.max-output-length }}
         ON_TRUNCATE_MSG: ${{ inputs.on-truncate-message }}
-        TERRAGRUNT_LOG_LEVEL: ${{ inputs.terragrunt-log-level }}
-        TF_LOG: ${{ inputs.terraform-log-level }}
         # See https://github.com/gruntwork-io/terragrunt/issues/390
         TF_CLI_ARGS_init: -no-color
         # See https://www.terraform.io/cli/config/environment-variables#tf_in_automation
