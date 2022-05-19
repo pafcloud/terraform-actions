@@ -1,9 +1,12 @@
 name: run-terragrunt
-description: Runs terragrunt with configurable command line arguments
+description: Runs terragrunt with given command line arguments
 
 inputs:
   cmd-line-args:
-    description: Terragrunt command-line arguments, e.g. 'plan -no-color'
+    description: Command-line arguments, e.g. 'plan -no-color'
+    required: true
+  working-directory:
+    description: Working directory, in which terragrunt is run
     required: true
 
 outputs:
@@ -28,6 +31,7 @@ runs:
         else
           echo "::set-output name=output::$(perl -pe 's/\n$/%0A/g' < $output_file)"
         fi
+      working-directory: ${{ inputs.working-directory }}
       env:
         CMD_LINE_ARGS: ${{ inputs.cmd-line-args }}
         MAX_OUTPUT_LENGTH: 65000
