@@ -16,11 +16,11 @@ inputs:
     description: Message to append to output, if it gets truncated due to exceeding max length
     required: false
     default: "\n[output truncated, see workflow logs for complete output]"
-  log-level:
+  terragrunt-log-level:
     description: Terragrunt log level, see https://terragrunt.gruntwork.io/docs/reference/cli-options/#terragrunt-log-level
     required: false
     default: warn
-
+  
 outputs:
   output:
     description: Terragrunt output (stdout + stderr)
@@ -49,7 +49,7 @@ runs:
         CMD_LINE_ARGS: ${{ inputs.cmd-line-args }}
         MAX_OUTPUT_LENGTH: ${{ inputs.max-output-length }}
         ON_TRUNCATE_MSG: ${{ inputs.on-truncate-message }}
-        TERRAGRUNT_LOG_LEVEL: ${{ inputs.log-level }}
+        TERRAGRUNT_LOG_LEVEL: ${{ inputs.terragrunt-log-level }}
         # See https://github.com/gruntwork-io/terragrunt/issues/390
         TF_CLI_ARGS_init: -no-color
         # See https://www.terraform.io/cli/config/environment-variables#tf_in_automation
