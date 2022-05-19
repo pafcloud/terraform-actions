@@ -1,0 +1,40 @@
+name: run-terragrunt
+description: Runs terragrunt with configurable command line arguments
+
+inputs:
+  cmd-line-args:
+    description: Terragrunt command-line arguments, e.g. 'plan -no-color'
+    required: true
+
+outputs:
+  output:
+    description: Terragrunt output (stdout + stderr)
+    value: ${{ steps.this.outputs.output }}
+  exit-code:
+    description: Terragrunt exit code, e.g. 0 for success
+    value: ${{ steps.this.outputs.exit-code }}
+
+runs:
+  using: composite
+  steps: 
+    - id: this
+      run: |
+        set -o pipefail
+        output_file="$(mktemp /tmp/terragrunt-output.XXXXXXXX)"
+        terragrunt $CMD_LINE_ARGS 2>&1 | tee $output_file
+        echo "::set-output name=exit-code::$?"
+        if [ "$(wc -c < $output_file)" -gt "$MAX_OUTPUT_LENGTH" ]; then
+          echo "::set-output name=output::$(head -c $MAX_OUTPUT_LENGTH $output_file | echo -e "$(cat -)$ON_TRUNCATE_MSG" | perl -pe 's/\n$/%0A/g')"
+        else
+          echo "::set-output name=output::$(perl -pe 's/\n$/%0A/g' < $output_file)"
+        fi
+      env:
+        CMD_LINE_ARGS: ${{ inputs.cmd-line-args }}
+        MAX_OUTPUT_LENGTH: 65000
+        ON_TRUNCATE_MSG: "\n[output truncated, see workflow logs for complete output]"
+        # See https://github.com/gruntwork-io/terragrunt/issues/390
+        TF_CLI_ARGS_init: -no-color
+        # See https://www.terraform.io/cli/config/environment-variables#tf_in_automation
+        TF_IN_AUTOMATION: yes
+        # See https://terragrunt.gruntwork.io/docs/reference/cli-options/#terragrunt-log-level
+        TERRAGRUNT_LOG_LEVEL: warn
