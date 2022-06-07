@@ -39,7 +39,7 @@ runs:
         rm $tmp_archive
 
         if [ ! -f "${SAVED_STATE_SERIAL}" ]; then
-          # Artifact found but content is uknown
+          # Artifact found but content is unknown
           error "The given terraform plan can no longer be applied because saved github run artifact has unknown content. Try re-running the plan or open new pr."
         fi
 
