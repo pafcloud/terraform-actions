@@ -31,11 +31,16 @@ runs:
           exit 1
         }
 
-        RC=0
-        gh run download -n "${ARTIFACT_NAME}" -D ${RUNNER_TEMP} || RC=$?
-        if [[ ${RC} -ne 0 || ! -f "${SAVED_STATE_SERIAL}" ]]; then
-          # Artifact expired or not found.
-          error "The given terraform plan can no longer be applied because saved terraform state serial is removed from github run artifacts (by default after 90 days). Try re-running the plan or open new pr."
+        tmp_archive=$(mktemp ${RUNNER_TEMP}/artifact-XXXXXXXX.zip)
+        dl_url=$(gh api https://api.github.com/repos/{owner}/{repo}/actions/artifacts?per_page=100 --paginate --jq ".artifacts[] | select(.name == \"${ARTIFACT_NAME}\") | .archive_download_url")
+        gh api $dl_url > $tmp_archive || error "The given terraform plan can no longer be applied because saved terraform state serial is removed from github run artifacts (by default after 90 days). Try re-running the plan or open new pr."
+
+        unzip -od ${RUNNER_TEMP} $tmp_archive
+        rm $tmp_archive
+
+        if [ ! -f "${SAVED_STATE_SERIAL}" ]; then
+          # Artifact found but content is unknown
+          error "The given terraform plan can no longer be applied because saved github run artifact has unknown content. Try re-running the plan or open new pr."
         fi
 
         echo "::debug::current state serial: $(< ${CURRENT_STATE_SERIAL})"
