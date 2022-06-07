@@ -31,7 +31,7 @@ runs:
           exit 1
         }
 
-        tmp_archive=$(mktemp -suffix zip ${RUNNER_TEMP}/artifact-XXXXXXXX)
+        tmp_archive=$(mktemp ${RUNNER_TEMP}/artifact-XXXXXXXX.zip)
         dl_url=$(gh api https://api.github.com/repos/{owner}/{repo}/actions/artifacts?per_page=100 --paginate --jq ".artifacts[] | select(.name == \"${ARTIFACT_NAME}\") | .archive_download_url")
         gh api $dl_url > $tmp_archive || error "The given terraform plan can no longer be applied because saved terraform state serial is removed from github run artifacts (by default after 90 days). Try re-running the plan or open new pr."
 
