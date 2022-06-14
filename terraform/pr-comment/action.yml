@@ -119,7 +119,9 @@ runs:
             exit 5
         esac
 
-        gh pr comment ${PULL_REQUEST_NUMBER} --body "${MSG}"
+        for t in 0 1 2 4 8 16 32; do
+          sleep $t && gh pr comment ${PULL_REQUEST_NUMBER} --body "${MSG}" && break
+        done
 
       shell: bash
       env:
