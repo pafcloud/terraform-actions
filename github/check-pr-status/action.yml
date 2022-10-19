@@ -35,10 +35,10 @@ runs:
           gh --repo "$GITHUB_REPOSITORY" pr comment "$PR_NUMBER" --body "Terraform apply via PR comment is blocked. Pull request must be open and mergeable (approved and status checks passing)"
         fi
 
-        echo "::set-output name=pr-mergeable-state::${mergeable_state}"
-        echo "::set-output name=pr-state::${state}"
-        echo "::set-output name=pr-head-sha::${head_sha}"
-        echo "::set-output name=pr-merge-commit-sha::${merge_commit_sha}"
+        echo "pr-mergeable-state=${mergeable_state}" >> .GITHUB_OUTPUT
+        echo "pr-state=${state}" >> .GITHUB_OUTPUT
+        echo "pr-head-sha=${head_sha}" >> .GITHUB_OUTPUT
+        echo "pr-merge-commit-sha=${merge_commit_sha}" >> .GITHUB_OUTPUT
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}

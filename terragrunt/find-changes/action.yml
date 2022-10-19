@@ -50,8 +50,8 @@ runs:
         done)
 
         # Outputs as JSON arrays
-        echo ::set-output name=updates::$(echo -n ${updates} | jq -Rsc 'split(" ")')
-        echo ::set-output name=deletions::$(echo -n ${deletions} | jq -Rsc 'split(" ")')
+        echo "updates=$(echo -n ${updates} | jq -Rsc 'split(" ")')" >> .GITHUB_OUTPUT
+        echo "deletions=$(echo -n ${deletions} | jq -Rsc 'split(" ")')" >> .GITHUB_OUTPUT
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}

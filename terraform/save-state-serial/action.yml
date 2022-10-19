@@ -8,6 +8,7 @@ inputs:
     description: Working directory
     required: true
 
+description: Save terraform state serial number to actions artifacts.
 runs:
   using: composite
   steps:
@@ -23,8 +24,8 @@ runs:
         command -v terraform-bin &> /dev/null && terraform=terraform-bin
         terragrunt state pull --terragrunt-tfpath $terraform | jq -r .serial > ${STATE_SERIAL_PATH}
 
-        echo ::set-output name=artifact-name::${ARTIFACT_NAME}
-        echo ::set-output name=path::${STATE_SERIAL_PATH}
+        echo "artifact-name=${ARTIFACT_NAME}" >> .GITHUB_OUTPUT
+        echo "path=${STATE_SERIAL_PATH}" >> .GITHUB_OUTPUT
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       env:
