@@ -40,11 +40,11 @@ runs:
         terragrunt $CMD_LINE_ARGS 2>&1 | tee $output_file
         exit_code="$?"
         set -e
-        echo "exit-code=$exit_code" >> .GITHUB_OUTPUT
+        echo "exit-code=$exit_code" >> $GITHUB_OUTPUT
         if [ "$(wc -c < $output_file)" -gt "$MAX_OUTPUT_LENGTH" ]; then
-          echo "output=$(head -c $MAX_OUTPUT_LENGTH $output_file | echo -e "$(cat -)$ON_TRUNCATE_MSG" | perl -pe 's/\n$/%0A/g')" >> .GITHUB_OUTPUT
+          echo "output=$(head -c $MAX_OUTPUT_LENGTH $output_file | echo -e "$(cat -)$ON_TRUNCATE_MSG" | perl -pe 's/\n$/%0A/g')" >> $GITHUB_OUTPUT
         else
-          echo "output=$(perl -pe 's/\n$/%0A/g' < $output_file)" >> .GITHUB_OUTPUT
+          echo "output=$(perl -pe 's/\n$/%0A/g' < $output_file)" >> $GITHUB_OUTPUT
         fi
         exit $exit_code
       working-directory: ${{ inputs.working-directory }}

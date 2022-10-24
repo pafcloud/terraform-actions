@@ -62,8 +62,8 @@ runs:
             exit 3
         fi
 
-        echo "tf-version=$tf_version" >> .GITHUB_OUTPUT
-        echo "tg-version=$tg_version" >> .GITHUB_OUTPUT
+        echo "tf-version=$tf_version" >> $GITHUB_OUTPUT
+        echo "tg-version=$tg_version" >> $GITHUB_OUTPUT
       env:
         DEFAULT_TF_VERSION: ${{ inputs.default-terraform-version }}
         DEFAULT_TG_VERSION: ${{ inputs.default-terragrunt-version }}
