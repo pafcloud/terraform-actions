@@ -41,7 +41,7 @@ runs:
         exit_code="$?"
         set -e
         echo "exit-code=$exit_code" >> $GITHUB_OUTPUT
-        output_delimiter="TF_EOF_$(openssl rand -hex 8)"
+        output_delimiter="TG_EOF_$(openssl rand -hex 8)"
         echo "output<<$output_delimiter" >> $GITHUB_OUTPUT
         if [ "$(wc -c < $output_file)" -gt "$MAX_OUTPUT_LENGTH" ]; then
           head -c $MAX_OUTPUT_LENGTH $output_file | echo -e "$(cat -)$ON_TRUNCATE_MSG" >> $GITHUB_OUTPUT
