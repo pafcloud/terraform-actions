@@ -21,14 +21,14 @@ inputs:
     description: Working directory
     required: true
   infracost-output:
-    description: Plan Cost estimation
+    description: Cost Estimation Details
     required: true
 
 runs:
   using: composite
   steps:
     - run: |
-        tf_details() {
+        details() {
           local fmt="$1"
           local open=""
           if [ "$2" == "open" ]; then
@@ -46,7 +46,11 @@ runs:
 
         plan_msg() {
           echo "### Terraform \`plan\` ($1)"
-          tf_details terraform closed "$2"
+          details terraform closed "$2"
+
+          echo "### Cost Estimation \`plan\` ($1)"
+          details terraform closed "$4"
+
           echo
           if [ "$3" = "plan-for-apply" ]; then
             echo "Please review the plan above, ask code owners to approve this pull request, and then run terraform apply by commenting <code>/apply</code> or merging this PR"
@@ -57,14 +61,14 @@ runs:
 
         failed_plan_msg() {
           echo "### Terraform \`plan\` failed ($1)"
-          tf_details text open "$2"
+          details text open "$2"
           echo
           echo "Please fix <code>terragrunt.hcl</code> inputs/module. Terraform plan is then automatically run again"
         }
 
         apply_msg() {
           echo "### Terraform \`apply\` ($1)"
-          tf_details text closed "$2"
+          details text closed "$2"
           if [ "$3" = "apply-on-comment" ]; then
             echo
             echo "Please merge this pull request to keep Git base branch and terraform-managed resource state in sync"
@@ -73,19 +77,19 @@ runs:
 
         failed_apply_msg() {
           echo "### Terraform \`apply\` failed ($1)"
-          tf_details text open "$2"
+          details text open "$2"
           echo
           echo "Please fix <code>terragrunt.hcl</code> inputs/module, and then run terraform apply again"
         }
 
         destroy_msg() {
           echo "### Terraform \`destroy\` ($1)"
-          tf_details text closed "$2"
+          details text closed "$2"
         }
 
         failed_destroy_msg() {
           echo "### Terraform \`destroy\` failed ($1)"
-          tf_details text open "$2"
+          details text open "$2"
           echo
           echo "Please run terraform destroy manually (do \`git checkout $3\` to restore \`terragrunt.hcl\`)"
         }
