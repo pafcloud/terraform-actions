@@ -23,6 +23,9 @@ inputs:
   infracost-output:
     description: Cost Estimation Details
     required: true
+  infracost-summary:
+    description: Cost Estimation Summary
+    required: true
 
 runs:
   using: composite
@@ -51,6 +54,7 @@ runs:
 
           summary_title="Show Price Estimation"
           echo "### Cost Estimation Plan ($1)" 
+          echo "Cost Summary:" "$5"
           details terraform closed "$4" "$summary_title"
 
           echo
@@ -99,7 +103,7 @@ runs:
         case "${RUN_TYPE}" in
           plan-for-apply|plan-for-destroy)
             if [ ${EXIT_CODE} -eq 0 ]; then
-              MSG=$(plan_msg "${WORKING_DIRECTORY}" "${OUTPUT}" "${RUN_TYPE}" "${INFRACOST_OUTPUT}")
+              MSG=$(plan_msg "${WORKING_DIRECTORY}" "${OUTPUT}" "${RUN_TYPE}" "${INFRACOST_OUTPUT}" "${INFRACOST_SUMMARY}")
             else
               MSG=$(failed_plan_msg "${WORKING_DIRECTORY}" "${OUTPUT}")
             fi
@@ -139,6 +143,7 @@ runs:
         WORKING_DIRECTORY: ${{ inputs.working-directory }}
         OUTPUT: ${{ inputs.terraform-output }}
         INFRACOST_OUTPUT: ${{ inputs.infracost-output }}
+        INFRACOST_SUMMARY: ${{ inputs.infracost-summary }}
         EXIT_CODE: ${{ inputs.terraform-exit-code }}
         PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
