@@ -48,7 +48,7 @@ runs:
           echo "### Terraform \`plan\` ($1)"
           details terraform closed "$2"
 
-          echo "### Cost Estimation \`plan\` ($1)"
+          echo "### Cost Estimation Plan ($1)"
           details terraform closed "$4"
 
           echo
