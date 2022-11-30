@@ -35,7 +35,7 @@ runs:
             open=" open";
           fi
 
-          echo "<details${open}><summary>$4</summary>"
+          echo "<details${open}><summary>"$4"</summary>"
           echo
           echo "\`\`\`${fmt}"
           echo "$(python3 -c 'import sys; print(sys.stdin.read().strip())' <<< $3)"
@@ -45,10 +45,10 @@ runs:
 
         plan_msg() {
           echo "### Terraform \`plan\` ($1)"
-          summary_title="Show output"
+          summary_title='Show output'
           details terraform closed "$2" $summary_title
           echo ""
-          summary_title="Show Price Estimation"
+          summary_title='Show Price Estimation'
           echo "### Cost Estimation Plan ($1)" $summary_title
           details terraform closed "$4" 
 
