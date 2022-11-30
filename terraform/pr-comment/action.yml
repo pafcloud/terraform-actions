@@ -20,6 +20,9 @@ inputs:
   working-directory:
     description: Working directory
     required: true
+  infracost-output:
+    description: Plan Cost estimation
+    required: true
 
 runs:
   using: composite
