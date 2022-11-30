@@ -46,12 +46,12 @@ runs:
         plan_msg() {
           echo "### Terraform \`plan\` ($1)"
           summary_title="Show output"
-          details terraform closed "$2" $summary_title
+          details terraform closed "$2" "$summary_title"
           echo ""
 
           summary_title="Show Price Estimation"
           echo "### Cost Estimation Plan ($1)" 
-          details terraform closed "$4" $summary_title
+          details terraform closed "$4" "$summary_title"
 
           echo
           if [ "$3" = "plan-for-apply" ]; then
