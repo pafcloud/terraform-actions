@@ -29,6 +29,10 @@ runs:
   steps: 
     - id: this
       shell: bash
+      env:
+        MAX_OUTPUT_LENGTH: ${{ inputs.max-output-length }}
+        ON_TRUNCATE_MSG:   ${{ inputs.on-truncate-message }}
+        WORKING_DIRECTORY: ${{ inputs.working-directory }}
       run: |
      
         terragrunt show -json  $WORKING_DIRECTORY/plan.tfplan > $WORKING_DIRECTORY/plan.json
@@ -43,8 +47,3 @@ runs:
         # generate summary from json
         echo "summary=$(jq -r '.projects | .[] | " \(.pastBreakdown.totalMonthlyCost) → \(.breakdown.totalMonthlyCost)"' < $WORKING_DIRECTORY/infracost.json) €/Month" >> $GITHUB_OUTPUT
         echo EOF >> $GITHUB_OUTPUT
-
-      env:
-        MAX_OUTPUT_LENGTH: ${{ inputs.max-output-length }}
-        ON_TRUNCATE_MSG: ${{ inputs.on-truncate-message }}
-        WORKING_DIRECTORY: ${{ inputs.working-directory }}
