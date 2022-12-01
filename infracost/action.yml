@@ -3,7 +3,7 @@ description: >
   Runs infracost to get a cost estimate.
   
 inputs:
-  working-directory:
+  WORKING_DIRECTORY:
     description: Working directory, in which the infracost command is run
     required: true
     default: ${{ runner.temp }}
@@ -31,20 +31,20 @@ runs:
       shell: bash
       run: |
      
-        terragrunt show -json  "$working-directory"/plan.tfplan > "$working-directory"/plan.json
+        terragrunt show -json  "$WORKING_DIRECTORY"/plan.tfplan > "$WORKING_DIRECTORY"/plan.json
         infracost configure set currency EUR
-        infracost diff --path="$working-directory"/plan.json --format=json >> "$working-directory"/infracost.json
+        infracost diff --path="$WORKING_DIRECTORY"/plan.json --format=json >> "$WORKING_DIRECTORY"/infracost.json
 
         # generate normal output from json
         echo "output<<EOF" >> $GITHUB_OUTPUT
-        infracost diff --path="$working-directory"/plan.json --format=diff >> $GITHUB_OUTPUT 
+        infracost diff --path="$WORKING_DIRECTORY"/plan.json --format=diff >> $GITHUB_OUTPUT 
         echo EOF >> $GITHUB_OUTPUT  
 
         # generate summary from json
-        echo "summary=$(jq -r '.projects | .[] | " \(.pastBreakdown.totalMonthlyCost) → \(.breakdown.totalMonthlyCost)"' < "$working-directory"/infracost.json) €/Month" >> $GITHUB_OUTPUT
+        echo "summary=$(jq -r '.projects | .[] | " \(.pastBreakdown.totalMonthlyCost) → \(.breakdown.totalMonthlyCost)"' < "$WORKING_DIRECTORY"/infracost.json) €/Month" >> $GITHUB_OUTPUT
         echo EOF >> $GITHUB_OUTPUT
 
-      working-directory: ${{ inputs.working-directory }}
+      WORKING_DIRECTORY: ${{ inputs.working-directory }}
       env:
         MAX_OUTPUT_LENGTH: ${{ inputs.max-output-length }}
         ON_TRUNCATE_MSG: ${{ inputs.on-truncate-message }}
