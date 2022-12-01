@@ -1,0 +1,63 @@
+name: run-terragrunt
+description: >
+  Runs terragrunt non-interactively (implicitly setting TF_IN_AUTOMATION=yes and TF_INPUT=false), with given command line arguments,
+  in given working directory, and emits the resulting exit code and output. To customize behavior, TERRAGRUNT_* and TF_* environment 
+  variables and/or CLI flags can be specified by the caller. See e.g. https://www.terraform.io/cli/config/environment-variables and
+  https://terragrunt.gruntwork.io/docs/reference/cli-options/#cli-options.
+
+inputs:
+  cmd-line-args:
+    description: Terragrunt command-line arguments, e.g. 'plan -no-color'
+    required: true
+  working-directory:
+    description: Working directory, in which the terragrunt command is run
+    required: true
+  max-output-length:
+    description: Maximum output length (combined stdout + stderr), in characters
+    required: false
+    default: 65000
+  on-truncate-message:
+    description: Message to append to output, if it gets truncated due to exceeding max length
+    required: false
+    default: "\n[output truncated, see workflow logs for complete output]"
+
+outputs:
+  output:
+    description: Terragrunt output (stdout + stderr)
+    value: ${{ steps.this.outputs.output }}
+  exit-code:
+    description: Terragrunt exit code, e.g. '0' for success
+    value: ${{ steps.this.outputs.exit-code }}
+
+runs:
+  using: composite
+  steps: 
+    - id: this
+      shell: bash
+      run: |
+        output_file="$(mktemp /tmp/terragrunt-output.XXXXXXXX)"
+        set +e
+        terragrunt $CMD_LINE_ARGS 2>&1 | tee $output_file
+        exit_code="$?"
+        set -e
+        echo "exit-code=$exit_code" >> $GITHUB_OUTPUT
+        output_delimiter="TG_EOF_$(openssl rand -hex 8)"
+        echo "output<<$output_delimiter" >> $GITHUB_OUTPUT
+        if [ "$(wc -c < $output_file)" -gt "$MAX_OUTPUT_LENGTH" ]; then
+          head -c $MAX_OUTPUT_LENGTH $output_file | echo -e "$(cat -)$ON_TRUNCATE_MSG" >> $GITHUB_OUTPUT
+        else
+          cat $output_file >> $GITHUB_OUTPUT
+        fi
+        echo "$output_delimiter" >> $GITHUB_OUTPUT
+        exit $exit_code
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        CMD_LINE_ARGS: ${{ inputs.cmd-line-args }}
+        MAX_OUTPUT_LENGTH: ${{ inputs.max-output-length }}
+        ON_TRUNCATE_MSG: ${{ inputs.on-truncate-message }}
+        # See https://github.com/gruntwork-io/terragrunt/issues/390
+        TF_CLI_ARGS_init: -no-color
+        # See https://www.terraform.io/cli/config/environment-variables#tf_in_automation
+        TF_IN_AUTOMATION: yes
+        # See https://www.terraform.io/cli/config/environment-variables#tf_input
+        TF_INPUT: false
