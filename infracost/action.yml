@@ -22,9 +22,6 @@ outputs:
   summary: 
     description: Short summary containing old monthly + new monthly
     value: ${{ steps.this.outputs.summary }}
-  exit-code:
-    description: Terragrunt exit code, e.g. '0' for success
-    value: ${{ steps.this.outputs.exit-code }}
 
 runs:
   using: composite
@@ -44,7 +41,7 @@ runs:
         # generate summary from json
         echo "summary=$(jq -r '.projects | .[] | " \(.pastBreakdown.totalMonthlyCost) → \(.breakdown.totalMonthlyCost)"' < ${{ runner.temp }}/infracost.json) €/Month" >> $GITHUB_OUTPUT
         echo EOF >> $GITHUB_OUTPUT
-      
+
       working-directory: ${{ inputs.working-directory }}
       env:
         MAX_OUTPUT_LENGTH: ${{ inputs.max-output-length }}
