@@ -1,52 +1,149 @@
-name: infracost
-description: >
-  Runs infracost to get a cost estimate.
-  
+name: pr-comment
+description: Adds terraform plan, apply or destroy output to a pull request comment
+
 inputs:
-  cmd-line-args:
-    description: Terragrunt command-line arguments, e.g. 'plan -no-color'
+  github-token:
+    description: GitHub auth token
+    required: true
+  terraform-output:
+    description: Terraform output (stdout)
+    required: true
+  terraform-exit-code:
+    description: Terraform exit code
+    required: true
+  terraform-run-type:
+    description: Terraform run type, i.e. plan-for-apply, plan-for-destroy, apply-on-comment, apply-on-merge or destroy-on-merge
+    required: true
+  pull-request-number:
+    description: Pull request number
     required: true
   working-directory:
-    description: Working directory, in which the terragrunt command is run
+    description: Working directory
     required: true
-  max-output-length:
-    description: Maximum output length (combined stdout + stderr), in characters
-    required: false
-    default: 65000
-  on-truncate-message:
-    description: Message to append to output, if it gets truncated due to exceeding max length
-    required: false
-    default: "\n[output truncated, see workflow logs for complete output]"
-
-outputs:
-  output:
-    description: Terragrunt output (stdout + stderr)
-    value: ${{ steps.this.outputs.output }}
-  exit-code:
-    description: Terragrunt exit code, e.g. '0' for success
-    value: ${{ steps.this.outputs.exit-code }}
+  infracost-output:
+    description: Cost Estimation Details
+    required: true
+  infracost-summary:
+    description: Cost Estimation Summary
+    required: true
 
 runs:
   using: composite
-  steps: 
-    - id: this
+  steps:
+    - run: |
+        details() {
+          local fmt="$1"
+          local open=""
+          if [ "$2" == "open" ]; then
+            open=" open";
+          fi
+
+          echo "<details${open}><summary>" $4 "</summary>"
+          echo
+          echo "\`\`\`${fmt}"
+          echo "$(python3 -c 'import sys; print(sys.stdin.read().strip())' <<< $3)"
+          echo "\`\`\`"
+          echo "</details>"
+        }
+
+        plan_msg() {
+          echo "### Terraform \`plan\` ($1)"
+          summary_title="Show output"
+          details terraform closed "$2" "$summary_title"
+          echo ""
+
+          summary_title="Show Price Estimation"
+          echo "### Cost Estimation Plan ($1)" 
+          echo "**Cost Summary:**" "$5"
+          details terraform closed "$4" "$summary_title"
+
+          echo
+          if [ "$3" = "plan-for-apply" ]; then
+            echo "Please review the plan above, ask code owners to approve this pull request, and then run terraform apply by commenting <code>/apply</code> or merging this PR"
+          else
+            echo "Please review the plan above, ask code owners to approve this pull request, and then run terraform destroy by merging this PR"
+          fi
+        }
+
+        failed_plan_msg() {
+          echo "### Terraform \`plan\` failed ($1)"
+          details text open "$2"
+          echo
+          echo "Please fix <code>terragrunt.hcl</code> inputs/module. Terraform plan is then automatically run again"
+        }
+
+        apply_msg() {
+          echo "### Terraform \`apply\` ($1)"
+          details text closed "$2"
+          if [ "$3" = "apply-on-comment" ]; then
+            echo
+            echo "Please merge this pull request to keep Git base branch and terraform-managed resource state in sync"
+          fi
+        }
+
+        failed_apply_msg() {
+          echo "### Terraform \`apply\` failed ($1)"
+          details text open "$2"
+          echo
+          echo "Please fix <code>terragrunt.hcl</code> inputs/module, and then run terraform apply again"
+        }
+
+        destroy_msg() {
+          echo "### Terraform \`destroy\` ($1)"
+          details text closed "$2"
+        }
+
+        failed_destroy_msg() {
+          echo "### Terraform \`destroy\` failed ($1)"
+          details text open "$2"
+          echo
+          echo "Please run terraform destroy manually (do \`git checkout $3\` to restore \`terragrunt.hcl\`)"
+        }
+
+        case "${RUN_TYPE}" in
+          plan-for-apply|plan-for-destroy)
+            if [ ${EXIT_CODE} -eq 0 ]; then
+              MSG=$(plan_msg "${WORKING_DIRECTORY}" "${OUTPUT}" "${RUN_TYPE}" "${INFRACOST_OUTPUT}" "${INFRACOST_SUMMARY}")
+            else
+              MSG=$(failed_plan_msg "${WORKING_DIRECTORY}" "${OUTPUT}")
+            fi
+            ;;
+
+          apply-on-comment|apply-on-merge)
+            if [ $EXIT_CODE -eq 0 ]; then
+              MSG=$(apply_msg "${WORKING_DIRECTORY}" "${OUTPUT}" "${RUN_TYPE}")
+            else
+              MSG=$(failed_apply_msg "${WORKING_DIRECTORY}" "${OUTPUT}")
+            fi
+            ;;
+
+          destroy-on-merge)
+            if [ $EXIT_CODE -eq 0 ]; then
+              MSG=$(destroy_msg "${WORKING_DIRECTORY}" "${OUTPUT}")
+            else
+              auth="Authorization: Bearer ${{ inputs.github-token }}"
+              pr_url="https://api.github.com/repos/${{ github.repository }}/pulls/${{ inputs.pull-request-number }}"
+              pr_base_sha=$(curl -sH "$auth" "$pr_url" | jq -r .base.sha)
+              MSG=$(failed_destroy_msg "${WORKING_DIRECTORY}" "${OUTPUT}" "${pr_base_sha}")
+            fi
+            ;;
+
+          *)
+            echo "ERROR: Unexpected terraform run type: ${RUN_TYPE}"
+            exit 5
+        esac
+
+        for t in 0 1 5 10 30 30 60; do
+          sleep $t && gh pr comment ${PULL_REQUEST_NUMBER} --body "${MSG}" && break
+        done
+
       shell: bash
-      run: |
-        terragrunt show -json ${{ runner.temp }}/plan.tfplan > ${{ runner.temp }}/plan.json
-        infracost configure set currency EUR
-        infracost diff --path=${{ runner.temp }}/plan.json --format=json >> ${{ runner.temp }}/infracost.json
-
-        # generate normal output from json
-        echo "output<<EOF" >> $GITHUB_OUTPUT
-        infracost diff --path=${{ runner.temp }}/plan.json --format=diff >> $GITHUB_OUTPUT 
-        echo EOF >> $GITHUB_OUTPUT  
-
-        # generate summary from json
-        echo "summary=$(jq -r '.projects | .[] | " \(.pastBreakdown.totalMonthlyCost) → \(.breakdown.totalMonthlyCost)"' < ${{ runner.temp }}/infracost.json) €/Month" >> $GITHUB_OUTPUT
-        echo EOF >> $GITHUB_OUTPUT
-
-      working-directory: ${{ inputs.working-directory }}
       env:
-        CMD_LINE_ARGS: ${{ inputs.cmd-line-args }}
-        MAX_OUTPUT_LENGTH: ${{ inputs.max-output-length }}
-        ON_TRUNCATE_MSG: ${{ inputs.on-truncate-message }}
+        RUN_TYPE: ${{ inputs.terraform-run-type }}
+        WORKING_DIRECTORY: ${{ inputs.working-directory }}
+        OUTPUT: ${{ inputs.terraform-output }}
+        INFRACOST_OUTPUT: ${{ inputs.infracost-output }}
+        INFRACOST_SUMMARY: ${{ inputs.infracost-summary }}
+        EXIT_CODE: ${{ inputs.terraform-exit-code }}
+        PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
