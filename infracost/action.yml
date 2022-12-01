@@ -31,17 +31,17 @@ runs:
       shell: bash
       run: |
      
-        terragrunt show -json $working-directory/plan.tfplan > $working-directory/plan.json
+        terragrunt show -json { $working-directory }/plan.tfplan > { $working-directory }/plan.json
         infracost configure set currency EUR
-        infracost diff --path=$working-directory/plan.json --format=json >> $working-directory/infracost.json
+        infracost diff --path={ $working-directory }/plan.json --format=json >> { $working-directory }/infracost.json
 
         # generate normal output from json
         echo "output<<EOF" >> $GITHUB_OUTPUT
-        infracost diff --path=$working-directory/plan.json --format=diff >> $GITHUB_OUTPUT 
+        infracost diff --path={ $working-directory }/plan.json --format=diff >> $GITHUB_OUTPUT 
         echo EOF >> $GITHUB_OUTPUT  
 
         # generate summary from json
-        echo "summary=$(jq -r '.projects | .[] | " \(.pastBreakdown.totalMonthlyCost) → \(.breakdown.totalMonthlyCost)"' < $working-directory/infracost.json) €/Month" >> $GITHUB_OUTPUT
+        echo "summary=$(jq -r '.projects | .[] | " \(.pastBreakdown.totalMonthlyCost) → \(.breakdown.totalMonthlyCost)"' < { $working-directory }/infracost.json) €/Month" >> $GITHUB_OUTPUT
         echo EOF >> $GITHUB_OUTPUT
 
       working-directory: ${{ inputs.working-directory }}
