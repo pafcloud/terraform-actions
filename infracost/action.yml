@@ -44,7 +44,7 @@ runs:
         echo "summary=$(jq -r '.projects | .[] | " \(.pastBreakdown.totalMonthlyCost) → \(.breakdown.totalMonthlyCost)"' < "$WORKING_DIRECTORY"/infracost.json) €/Month" >> $GITHUB_OUTPUT
         echo EOF >> $GITHUB_OUTPUT
 
-      WORKING_DIRECTORY: ${{ inputs.working-directory }}
       env:
         MAX_OUTPUT_LENGTH: ${{ inputs.max-output-length }}
         ON_TRUNCATE_MSG: ${{ inputs.on-truncate-message }}
+        WORKING_DIRECTORY: ${{ inputs.working-directory }}
