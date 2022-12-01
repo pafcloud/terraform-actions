@@ -3,11 +3,8 @@ description: >
   Runs infracost to get a cost estimate.
   
 inputs:
-  cmd-line-args:
-    description: Terragrunt command-line arguments, e.g. 'plan -no-color'
-    required: true
   working-directory:
-    description: Working directory, in which the terragrunt command is run
+    description: Working directory, in which the infracost command is run
     required: true
   max-output-length:
     description: Maximum output length (combined stdout + stderr), in characters
@@ -20,8 +17,11 @@ inputs:
 
 outputs:
   output:
-    description: Terragrunt output (stdout + stderr)
+    description: infracost output (diff)
     value: ${{ steps.this.outputs.output }}
+  summary: 
+    description: Short summary containing old monthly + new monthly
+    value: ${{ steps.this.outputs.summary }}
   exit-code:
     description: Terragrunt exit code, e.g. '0' for success
     value: ${{ steps.this.outputs.exit-code }}
@@ -44,9 +44,8 @@ runs:
         # generate summary from json
         echo "summary=$(jq -r '.projects | .[] | " \(.pastBreakdown.totalMonthlyCost) → \(.breakdown.totalMonthlyCost)"' < ${{ runner.temp }}/infracost.json) €/Month" >> $GITHUB_OUTPUT
         echo EOF >> $GITHUB_OUTPUT
-
+      
       working-directory: ${{ inputs.working-directory }}
       env:
-        CMD_LINE_ARGS: ${{ inputs.cmd-line-args }}
         MAX_OUTPUT_LENGTH: ${{ inputs.max-output-length }}
         ON_TRUNCATE_MSG: ${{ inputs.on-truncate-message }}
