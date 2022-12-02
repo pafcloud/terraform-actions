@@ -1,6 +1,5 @@
 name: infracost
-description: >
-  Runs infracost to get a cost estimate.
+description: Runs infracost to get a cost estimate.
   
 inputs:
   WORKING_DIRECTORY:
