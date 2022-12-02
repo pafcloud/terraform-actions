@@ -2,7 +2,7 @@ name: infracost
 description: Runs infracost to get a cost estimate.
   
 inputs:
-  WORKING_DIRECTORY:
+  working-directory:
     description: Working directory, in which the infracost command is run
     required: true
     default: ${{ runner.temp }}
