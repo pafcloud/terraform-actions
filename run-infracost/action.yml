@@ -26,7 +26,7 @@ runs:
      
         terragrunt show -json  "${{ runner.temp }}/plan.tfplan" > "${{ runner.temp }}/plan.json"
         infracost configure set currency EUR
-        cd $WORKING_DIRECTORY
+        cd ${{ runner.temp }}
         infracost diff --path="${{ runner.temp }}/plan.json" --format=json >> "${{ runner.temp }}/infracost.json"
 
         # generate normal output from json
