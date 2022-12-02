@@ -24,15 +24,15 @@ runs:
         WORKING_DIRECTORY: ${{ inputs.working-directory }}
       run: |
      
-        terragrunt show -json  ${{ runner.temp }}/plan.tfplan > ${{ runner.temp }}/plan.json
+        terragrunt show -json  "${{ runner.temp }}"/plan.tfplan > "${{ runner.temp }}"/plan.json
         infracost configure set currency EUR
-        infracost diff --path=${{ runner.temp }}/plan.json --format=json >> ${{ runner.temp }}/infracost.json
+        infracost diff --path="${{ runner.temp }}"/plan.json --format=json >> "${{ runner.temp }}"/infracost.json
 
         # generate normal output from json
         echo "output<<EOF" >> $GITHUB_OUTPUT
-        infracost diff --path=${{ runner.temp }}/plan.json --format=diff >> $GITHUB_OUTPUT 
+        infracost diff --path="${{ runner.temp }}"/plan.json --format=diff >> $GITHUB_OUTPUT 
         echo EOF >> $GITHUB_OUTPUT  
 
         # generate summary from json
-        echo "summary=$(jq -r '.projects | .[] | " \(.pastBreakdown.totalMonthlyCost) → \(.breakdown.totalMonthlyCost)"' < ${{ runner.temp }}/infracost.json) €/Month" >> $GITHUB_OUTPUT
+        echo "summary=$(jq -r '.projects | .[] | " \(.pastBreakdown.totalMonthlyCost) → \(.breakdown.totalMonthlyCost)"' < "${{ runner.temp }}"/infracost.json) €/Month" >> $GITHUB_OUTPUT
         echo EOF >> $GITHUB_OUTPUT
