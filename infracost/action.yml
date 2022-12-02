@@ -7,14 +7,6 @@ inputs:
     description: Working directory, in which the infracost command is run
     required: true
     default: ${{ runner.temp }}
-  max-output-length:
-    description: Maximum output length (combined stdout + stderr), in characters
-    required: false
-    default: 65000
-  on-truncate-message:
-    description: Message to append to output, if it gets truncated due to exceeding max length
-    required: false
-    default: "\n[output truncated, see workflow logs for complete output]"
 
 outputs:
   output:
@@ -30,8 +22,6 @@ runs:
     - id: this
       shell: bash
       env:
-        MAX_OUTPUT_LENGTH: ${{ inputs.max-output-length }}
-        ON_TRUNCATE_MSG:   ${{ inputs.on-truncate-message }}
         WORKING_DIRECTORY: ${{ inputs.working-directory }}
       run: |
      
