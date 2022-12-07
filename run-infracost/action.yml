@@ -6,11 +6,6 @@ inputs:
     description: Path to saved terraform plan file
     required: true
 
-  working-directory:
-    description: Working directory, in which the infracost command is run
-    required: true
-    default: ${{ runner.temp }}
-
 outputs:
   output:
     description: infracost output (diff)
@@ -24,7 +19,6 @@ runs:
   steps:
     - id: this
       shell: bash
-      working-directory: ${{ inputs.working-directory }}
       env:
         INFRACOST_CURRENCY: EUR
         INFRACOST_CURRENCY_FORMAT: "EUR: 1.234,56€"
