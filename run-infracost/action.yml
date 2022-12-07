@@ -21,9 +21,10 @@ runs:
     - id: this
       shell: bash
       working-directory: ${{ inputs.working-directory }}
+      env:
+        INFRACOST_CURRENCY: EUR
       run: |
         terragrunt show -json ${{ runner.temp }}/plan.tfplan > plan.json
-        infracost configure set currency EUR
         infracost diff --path plan.json --format=json >> infracost.json
 
         # generate normal output from json
