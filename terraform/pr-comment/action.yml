@@ -47,13 +47,15 @@ runs:
         }
 
         plan_msg() {
-          echo "### Terraform \`plan\` ($1)"
+
+          ## $1
+          echo "### Terraform plan "
           summary_title="Show output"
           details terraform closed "$2" "$summary_title"
           echo ""
 
           summary_title="Show Price Estimation"
-          echo "### Cost Estimation Plan ($1)" 
+          echo "### Cost Estimation Plan" 
           echo "**Cost Summary:**" "$5"
           details terraform closed "$4" "$summary_title"
 
