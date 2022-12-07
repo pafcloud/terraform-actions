@@ -31,7 +31,7 @@ runs:
         PLAN_FILE: ${{ inputs.plan-file }}
       run: |
         tmp_dir="$(mktemp -d $RUNNER_TEMP/XXXXXXXXXX)"
-        terragrunt show -json $PLAN_FILE > "$tmp_dir/plan.json"
+        terragrunt show -json $PLAN_FILE > $tmp_dir/plan.json
         infracost diff --path $tmp_dir/plan.json --format=json >> $tmp_dir/infracost.json
 
         # generate normal output from json
