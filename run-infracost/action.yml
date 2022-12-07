@@ -1,4 +1,4 @@
-name: infracost
+name: run-infracost
 description: Runs infracost to get a cost estimate.
   
 inputs:
