@@ -40,6 +40,6 @@ runs:
         echo EOF >> $GITHUB_OUTPUT
 
         # generate summary from json
-        echo "summary=$(jq -r '.projects | .[] | " \((.pastBreakdown.totalMonthlyCost) | round) → \((.breakdown.totalMonthlyCost) | round )"' < $tmp_dir/infracost.json) €/Month" >> $GITHUB_OUTPUT
+        echo "summary=$(jq -r '.projects | .[] | " \'((.pastBreakdown.totalMonthlyCost) | round)' → \'((.breakdown.totalMonthlyCost) | round )'"' < $tmp_dir/infracost.json) €/Month" >> $GITHUB_OUTPUT
 
 
