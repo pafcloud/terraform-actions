@@ -48,7 +48,7 @@ runs:
 
         plan_msg() {
 
-          echo ## "$1"
+          echo "## "$1""
           echo "### Terraform plan "
           summary_title="Show output"
           details terraform closed "$2" "$summary_title"
