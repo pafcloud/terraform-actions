@@ -23,7 +23,6 @@ runs:
       working-directory: ${{ inputs.working-directory }}
       env:
         INFRACOST_CURRENCY: EUR
-        INFRACOST_AWS_OVERRIDE_REGION: eu-west-1
         INFRACOST_CURRENCY_FORMAT="EUR: 1.234,56€"
       run: |
         terragrunt show -json ${{ runner.temp }}/plan.tfplan > plan.json
