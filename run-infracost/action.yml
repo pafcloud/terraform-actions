@@ -34,3 +34,4 @@ runs:
         # generate summary from json
         echo "summary=$(jq -r '.projects | .[] | " \(.pastBreakdown.totalMonthlyCost) → \(.breakdown.totalMonthlyCost)"' < infracost.json) €/Month" >> $GITHUB_OUTPUT
         
+
