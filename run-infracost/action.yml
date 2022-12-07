@@ -21,17 +21,13 @@ runs:
     - id: this
       shell: bash
       working-directory: ${{ inputs.working-directory }}
-
       run: |
-     
         terragrunt show -json  plan.tfplan > plan.json"
         infracost configure set currency EUR
-        cd ${{ runner.temp }}
         infracost diff --path=.plan.json --format=json >> infracost.json
 
         # generate normal output from json
         echo "output<<EOF" >> $GITHUB_OUTPUT
-        cd ${{ runner.temp }}
         infracost diff --path=plan.json --format=diff >> $GITHUB_OUTPUT 
         echo EOF >> $GITHUB_OUTPUT  
 
