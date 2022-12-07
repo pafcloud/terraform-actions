@@ -1,7 +1,11 @@
 name: run-infracost
 description: Runs infracost to get a cost estimate.
-  
+
 inputs:
+  plan-file:
+    description: Path to saved terraform plan file
+    required: true
+
   working-directory:
     description: Working directory, in which the infracost command is run
     required: true
@@ -11,29 +15,31 @@ outputs:
   output:
     description: infracost output (diff)
     value: ${{ steps.this.outputs.output }}
-  summary: 
+  summary:
     description: Short summary containing old monthly + new monthly
     value: ${{ steps.this.outputs.summary }}
 
 runs:
   using: composite
-  steps: 
+  steps:
     - id: this
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       env:
         INFRACOST_CURRENCY: EUR
         INFRACOST_CURRENCY_FORMAT="EUR: 1.234,56€"
+        PLAN_FILE: ${{ inputs.plan-file }}
       run: |
-        terragrunt show -json ${{ runner.temp }}/plan.tfplan > plan.json
-        infracost diff --path plan.json --format=json >> infracost.json
+        tmp_dir="$(mktemp -d $RUNNER_TEMP/XXXXXXXXXX)"
+        terragrunt show -json $PLAN_FILE > "$tmp_dir/plan.json"
+        infracost diff --path $tmp_dir/plan.json --format=json >> $tmp_dir/infracost.json
 
         # generate normal output from json
         echo "output<<EOF" >> $GITHUB_OUTPUT
-        infracost diff --path plan.json --format=diff >> $GITHUB_OUTPUT 
-        echo EOF >> $GITHUB_OUTPUT  
+        infracost output --format diff --path $tmp_dir/infracost.json >> $GITHUB_OUTPUT
+        echo EOF >> $GITHUB_OUTPUT
 
         # generate summary from json
-        echo "summary=$(jq -r '.projects | .[] | " \(.pastBreakdown.totalMonthlyCost) → \(.breakdown.totalMonthlyCost)"' < infracost.json) €/Month" >> $GITHUB_OUTPUT
-        
+        echo "summary=$(jq -r '.projects | .[] | " \(.pastBreakdown.totalMonthlyCost) → \(.breakdown.totalMonthlyCost)"' < $tmp_dir/infracost.json) €/Month" >> $GITHUB_OUTPUT
+
 
