@@ -40,6 +40,8 @@ runs:
         echo EOF >> $GITHUB_OUTPUT
 
         # generate summary from json
-        echo "summary=$(jq -r '.projects | .[] | " \((.pastBreakdown.totalMonthlyCost) | tonumber | round ) → \((.breakdown.totalMonthlyCost)| tonumber | round) "' < $tmp_dir/infracost.json) €/Month" >> $GITHUB_OUTPUT
+        currentMonthly=$(jq -r '.projects | .[] | " \(.breakdown.totalMonthlyCost) "' < $tmp_dir/infracost.json)
+        pastMonthly=$(jq -r '.projects | .[] | " \(.pastBreakdown.totalMonthlyCost)"' < $tmp_dir/infracost.json)
+        echo "summary=$(echo $pastMonthly | awk '{printf("%.2f \n",$1)}')→ $(echo $currentMonthly | awk '{printf("%.2f \n",$1)}')" >> $GITHUB_OUTPUT
 
 
