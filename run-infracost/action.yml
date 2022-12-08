@@ -42,5 +42,3 @@ runs:
         currentMonthly=$(jq -r '.projects | .[] | " \(.breakdown.totalMonthlyCost) "' < $tmp_dir/infracost.json)
         pastMonthly=$(jq -r '.projects | .[] | " \(.pastBreakdown.totalMonthlyCost)"' < $tmp_dir/infracost.json)
         echo "summary=$(echo $pastMonthly | awk '{printf("%.2f \n",$1)}')→ $(echo $currentMonthly | awk '{printf("%.2f \n",$1)}')" >> $GITHUB_OUTPUT
-
-
