@@ -55,7 +55,7 @@ runs:
           echo ""
 
           summary_title="Show Price Estimation"
-          echo "### Cost Estimation Plan" 
+          echo "### Cost Estimation Plan :moneybag:" 
           echo "**Cost Summary:**" "$5"
           details terraform closed "$4" "$summary_title"
 
