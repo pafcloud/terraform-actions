@@ -31,21 +31,7 @@ runs:
       run: |
         tmp_dir=$(mktemp -d $RUNNER_TEMP/infracost.XXXXXXXXXX)
         terragrunt show -json $PLAN_FILE > $tmp_dir/plan.json
-        
-        
-        upcat() {
-            file="$1"
-            while [ "$PWD" != "$search_stop_dir" -a "$PWD" != "/" ]; do
-                if [ -r "$file" ]; then
-                    cat "$file"
-                    break
-                fi
-                cd ..
-            done
-        }
-        resource_usage="$(upcat resource_usage.yml)"
-        
-        infracost diff --path $tmp_dir/plan.json --format=json --usage-file $resource_usage  >> $tmp_dir/infracost.json
+        infracost diff --path $tmp_dir/plan.json --format=json >> $tmp_dir/infracost.json
 
         # generate normal output from json
         echo "output<<EOF" >> $GITHUB_OUTPUT
