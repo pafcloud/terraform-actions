@@ -49,8 +49,9 @@ runs:
             echo "ERROR: Cannot resolve terraform version: no .terraform-version file found, and no default version is specified"
             exit 2
         fi
-        echo "resource-use=$resource_use" >> $GITHUB_OUTPUT
-        
+        echo "resource-use<<EOF" >> $GITHUB_OUTPUT
+        echo "$resource_use" >> $GITHUB_OUTPUT
+        echo EOF >> $GITHUB_OUTPUT
         
     - id: this
       shell: bash
