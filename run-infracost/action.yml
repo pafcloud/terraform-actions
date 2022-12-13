@@ -21,6 +21,38 @@ outputs:
 runs:
   using: composite
   steps:
+  
+    - id: resolve-usage-file
+      name: Resolve infracost default usage file
+      working-directory: ${{ inputs.working-directory }}
+      shell: bash
+      run: |
+        if [ -z "$GITHUB_WORKSPACE" ]; then
+            echo "ERROR: environment variable GITHUB_WORKSPACE is unset"
+            exit 1
+        fi
+        
+        search_stop_dir="$(dirname $GITHUB_WORKSPACE)"
+        
+        upcat() {
+            file="$1"
+            while [ "$PWD" != "$search_stop_dir" -a "$PWD" != "/" ]; do
+                if [ -r "$file" ]; then
+                    cat "$file"
+                    break
+                fi
+                cd ..
+            done
+        }
+        resource_use_from_file="$(upcat resource-use.yaml)"
+        resource_use="${tf_version_from_file:-$DEFAULT_TF_VERSION}"
+        if [ -z "$resource_use" ]; then
+            echo "ERROR: Cannot resolve terraform version: no .terraform-version file found, and no default version is specified"
+            exit 2
+        fi
+        echo "resource-use=$resource_use" >> $GITHUB_OUTPUT
+        
+        
     - id: this
       shell: bash
       working-directory: ${{ inputs.working-directory }}
