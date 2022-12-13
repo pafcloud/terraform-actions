@@ -44,8 +44,7 @@ runs:
                 cd ..
             done
         }
-        resource_use_from_file="$(upcat resource-use.yaml)"
-        resource_use="${resource_use_from_file:-$DEFAULT_TF_VERSION}"
+         resource_use="$(upcat resource-use.yaml)"
         if [ -z "$resource_use" ]; then
             echo "ERROR: Cannot resolve terraform version: no .terraform-version file found, and no default version is specified"
             exit 2
