@@ -44,7 +44,7 @@ runs:
                 cd ..
             done
         }
-         resource_use="$(upcat resource-use.yaml)"
+        resource_use="$(upcat resource-use.yaml)"
         if [ -z "$resource_use" ]; then
             echo "ERROR: Cannot resolve resource-use.yaml: no resource-use.yaml file found"
             exit 2
