@@ -52,7 +52,7 @@ runs:
             echo "ERROR: Cannot resolve resource-use.yaml: no resource-use.yaml file found"
             exit 2
         fi        
-        echo "resource-use=$resource_use" >> $GITHUB_OUTPUT
+        echo "resource-use=${resource_use[@]}" >> $GITHUB_OUTPUT
         
     - id: this
       shell: bash
@@ -64,10 +64,6 @@ runs:
         RESOURCE_USE: ${{ steps.resolve-usage-file.outputs.resource-use }}
       run: |
        
-        #read -a tmp_var_array <<< "$RESOURCE_USE"  
-        #tmp_var_array=($RESOURCE_USE)
-        
-        echo "Resource USE:" $RESOURCE_USE
         echo "The lenght of array is:" len=${#RESOURCE_USE[@]}
         
         tmp_dir=$(mktemp -d $RUNNER_TEMP/infracost.XXXXXXXXXX)
