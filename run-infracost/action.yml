@@ -63,10 +63,10 @@ runs:
         INFRACOST_CURRENCY_FORMAT: "EUR: 1.234,56€"
         PLAN_FILE: ${{ inputs.plan-file }}
       run: |
-        echo "RESOURCE_USE" $resource-use
+        echo "RESOURCE_USE" "$resource-use"
         tmp_dir=$(mktemp -d $RUNNER_TEMP/infracost.XXXXXXXXXX)
         terragrunt show -json $PLAN_FILE > $tmp_dir/plan.json
-        infracost diff --path $tmp_dir/plan.json --format=json --usage-file $resource-use >> $tmp_dir/infracost.json
+        infracost diff --path $tmp_dir/plan.json --format=json --usage-file "$resource-use" >> $tmp_dir/infracost.json
 
         # generate normal output from json
         echo "output<<EOF" >> $GITHUB_OUTPUT
