@@ -64,7 +64,10 @@ runs:
         PLAN_FILE: ${{ inputs.plan-file }}
         RESOURCE_USE: ${{ steps.resolve-usage-file.outputs.resource-use }}
       run: |
-        tmp_var_array=($RESOURCE_USE)
+      
+        read -a tmp_var_array <<< "$RESOURCE_USE"  
+        #tmp_var_array=($RESOURCE_USE)
+        
         $RESOURCE_USE=$tmp_var
         
         echo "tmp_var_array:" $tmp_var_array
