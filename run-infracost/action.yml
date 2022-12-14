@@ -71,7 +71,7 @@ runs:
 
         # generate normal output from json
         echo "output<<EOF" >> $GITHUB_OUTPUT
-        infracost output --format diff --path $tmp_dir/infracost.json >> $GITHUB_OUTPUT
+        infracost output --format table --path $tmp_dir/infracost.json >> $GITHUB_OUTPUT
         echo EOF >> $GITHUB_OUTPUT
 
         # generate summary from json
