@@ -46,7 +46,7 @@ runs:
         }
          resource_use="$(upcat resource-use.yaml)"
         if [ -z "$resource_use" ]; then
-            echo "ERROR: Cannot resolve terraform version: no .terraform-version file found, and no default version is specified"
+            echo "ERROR: Cannot resolve resource-use.yaml: no resource-use.yaml file found"
             exit 2
         fi
         echo "resource-use<<EOF" >> $GITHUB_OUTPUT
