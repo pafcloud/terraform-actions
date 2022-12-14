@@ -63,7 +63,7 @@ runs:
         PLAN_FILE: ${{ inputs.plan-file }}
         RESOURCE_USE: ${{ steps.resolve-usage-file.outputs.resource-use }}
       run: |
-       
+        echo "Resoruce USe:" $RESOURCE_USE
         echo "The lenght of array is:" len=${#RESOURCE_USE[@]}
         
         tmp_dir=$(mktemp -d $RUNNER_TEMP/infracost.XXXXXXXXXX)
