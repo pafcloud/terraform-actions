@@ -35,13 +35,16 @@ runs:
         search_stop_dir="$(dirname $GITHUB_WORKSPACE)"
         
         upcat() {
+            declare –a file_path_array=()
             file="$1"
             while [ "$PWD" != "$search_stop_dir" -a "$PWD" != "/" ]; do
                 if [ -r "$file" ]; then
-                    echo "$PWD"/resource-use.yaml
+                    file_path_array+=(echo "$PWD"/resource-use.yaml)
+
                 fi
                 cd ..
             done
+            echo "${file_path_array[*]}"
         }
         
         resource_use="$(upcat resource-use.yaml)"
