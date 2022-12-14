@@ -52,10 +52,8 @@ runs:
         if [ -z "$resource_use" ]; then
             echo "ERROR: Cannot resolve resource-use.yaml: no resource-use.yaml file found"
             exit 2
-        fi
-        echo "resource-use<<EOF" >> $GITHUB_OUTPUT
-        echo "$resource_use" >> $GITHUB_OUTPUT
-        echo EOF >> $GITHUB_OUTPUT
+        fi        
+        echo "resource-use=$resource_use" >> $GITHUB_OUTPUT
         
     - id: this
       shell: bash
