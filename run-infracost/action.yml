@@ -63,8 +63,12 @@ runs:
         PLAN_FILE: ${{ inputs.plan-file }}
         RESOURCE_USE: ${{ steps.resolve-usage-file.outputs.resource-use }}
       run: |
-        echo "Resoruce USe:" $RESOURCE_USE
-        echo "The lenght of array is:" len=${#RESOURCE_USE[@]}
+        #echo "Resoruce USe:" $RESOURCE_USE
+        #echo "The lenght of array is:" len=${#RESOURCE_USE[@]}
+        
+        arr=($RESOURCE_USE)
+        echo "Arr: " $arr
+        echo "Lenght: " len=${#arr[@]}
         
         tmp_dir=$(mktemp -d $RUNNER_TEMP/infracost.XXXXXXXXXX)
         terragrunt show -json $PLAN_FILE > $tmp_dir/plan.json
