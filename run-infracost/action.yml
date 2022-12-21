@@ -59,7 +59,6 @@ runs:
       run: |
         import yaml
         import os
-
         array_str = os.getenv('RESOURCE')
         array = array_str.split(' ')
         try:
@@ -69,23 +68,26 @@ runs:
                 dev = yaml.safe_load(file2)
         except:
             print("could not load the resource files")
-
         def merge_dicts(root_dict, dev_dict):
-          for key, value in dev_dict.items():
-            if key in root_dict:
-              if isinstance(root_dict[key], dict) and isinstance(value, dict):
-                root_dict[key] = merge_dicts(root_dict[key], value)
-              else:
-                root_dict[key] = value
-          return root_dict
-
+            for key, value in dev_dict.items():
+                if key in root_dict:
+                    if isinstance(root_dict[key], dict) and isinstance(value, dict):
+                        root_dict[key] = merge_dicts(root_dict[key], value)
+                    else:
+                        root_dict[key] = value
+            return root_dict
         try:
             runner_temp = os.getenv('RUNNER_TEMP')
             print("RUNNER TEMP:" ,runner_temp)
             merged_dict = merge_dicts(root, dev)
-            with open(runner_temp +"/result.yml", 'w') as yaml_file:  #Dumps the file into dev file
+            with open(runner_temp +"/result.yml", 'w') as yaml_file:  # dumps merged dict into results.
                 yaml.dump(merged_dict, yaml_file, default_flow_style=False) 
         except:
+            try:
+                with open(runner_temp +"/result.yml", 'w') as yaml_file:  # dumps root into usage file, something went wrong
+                    yaml.dump(root, yaml_file, default_flow_style=False) 
+            except:
+                print("Critical error, infracost could not establish file.")
             print("Could not merget the dev and root files")
  
     - id: this
