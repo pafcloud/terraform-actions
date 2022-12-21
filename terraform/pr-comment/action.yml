@@ -61,7 +61,8 @@ runs:
 
           echo
           if [ "$3" = "plan-for-apply" ]; then
-            echo "Please review the plan above, ask code owners to approve this pull request, and then run terraform apply by commenting <code>/apply</code> or by merging this PR.\n For a more accurate cost estimation add a *resource-use.yml* file to this PR."
+            echo "Please review the plan above, ask code owners to approve this pull request, and then run terraform apply by commenting <code>/apply</code> or by merging this PR.
+            For a more accurate cost estimation add a **resource-use.yml** file to this PR."
           else
             echo "Please review the plan above, ask code owners to approve this pull request, and then run terraform destroy by merging this PR"
           fi
