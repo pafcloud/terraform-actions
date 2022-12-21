@@ -56,11 +56,10 @@ runs:
       shell: python 
       env:
         RESOURCE: ${{ steps.resolve-usage-file.outputs.resource-use }}
-        TEMP: $RUNNER_TEMP
       run: |
         import yaml
         import os
-        
+
         array_str = os.getenv('RESOURCE')
         array = array_str.split(' ')
         try:
@@ -81,12 +80,13 @@ runs:
           return root_dict
 
         try:
+            runner_temp = os.environ['RUNNER_TEMP']
+            print("RUNNER TEMP:" ,runner_temp)
             merged_dict = merge_dicts(root, dev)
-            print("NEW FILE PATH: " ,os.getenv('TEMP')+ "/result.yml")
-            with open(os.getenv('TEMP')+ "/result.yml", 'w') as yaml_file:  #Dumps the file into dev file
+            with open(runner_temp +"/result.yml", 'w') as yaml_file:  #Dumps the file into dev file
                 yaml.dump(merged_dict, yaml_file, default_flow_style=False) 
         except:
-            print("Could not merget the dev and root files")
+    print("Could not merget the dev and root files")
  
     - id: this
       shell: bash
