@@ -86,7 +86,7 @@ runs:
             with open(runner_temp +"/result.yml", 'w') as yaml_file:  #Dumps the file into dev file
                 yaml.dump(merged_dict, yaml_file, default_flow_style=False) 
         except:
-    print("Could not merget the dev and root files")
+            print("Could not merget the dev and root files")
  
     - id: this
       shell: bash
