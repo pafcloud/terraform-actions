@@ -31,16 +31,13 @@ runs:
             echo "ERROR: environment variable GITHUB_WORKSPACE is unset"
             exit 1
         fi
-        
         search_stop_dir="$(dirname $GITHUB_WORKSPACE)"
-        
         upcat() {
             declare –a file_path_array=()
             file="$1"
             while [ "$PWD" != "$search_stop_dir" -a "$PWD" != "/" ]; do
                 if [ -r "$file" ]; then
                     file_path_array+=("$PWD"/resource-use.yaml)
-
                 fi
                 cd ..
             done
@@ -53,7 +50,39 @@ runs:
             exit 2
         fi        
         echo "resource-use=${resource_use[@]}" >> $GITHUB_OUTPUT
-        
+       
+    - id: merge-dictionary-files
+      working-directory: ${{ inputs.working-directory }}
+      shell: python 
+      env:
+        RESOURCE_USE: ${{ steps.resolve-usage-file.outputs.resource-use }}
+      run: |
+        import yaml
+        import os
+        try:
+            with open(os.environ["root"], 'r') as file:
+                root = yaml.safe_load(file)
+            with open(os.environ["dev"], 'r') as file2:
+                dev = yaml.safe_load(file2)
+        except:
+            print("could not load the resource files")
+
+        def merge_dicts(root_dict, dev_dict):
+          for key, value in dev_dict.items():
+            if key in root_dict:
+              if isinstance(root_dict[key], dict) and isinstance(value, dict):
+                root_dict[key] = merge_dicts(root_dict[key], value)
+              else:
+                root_dict[key] = value
+          return root_dict
+
+        try:
+            merged_dict = merge_dicts(root, dev)
+            with open(os.environ["root"], 'w') as yaml_file:  #Dumps the file into root file
+                yaml.dump(merged_dict, yaml_file, default_flow_style=False) 
+        except:
+            print("Could not merget the dev and root files")
+ 
     - id: this
       shell: bash
       working-directory: ${{ inputs.working-directory }}
@@ -63,13 +92,8 @@ runs:
         PLAN_FILE: ${{ inputs.plan-file }}
         RESOURCE_USE: ${{ steps.resolve-usage-file.outputs.resource-use }}
       run: |
-        #echo "Resoruce USe:" $RESOURCE_USE
-        #echo "The lenght of array is:" len=${#RESOURCE_USE[@]}
-        
-        arr=($RESOURCE_USE)
-        echo "Arr: " $arr
-        echo "Lenght: " len=${#arr[@]}
-        
+
+      
         tmp_dir=$(mktemp -d $RUNNER_TEMP/infracost.XXXXXXXXXX)
         terragrunt show -json $PLAN_FILE > $tmp_dir/plan.json
         infracost diff --path $tmp_dir/plan.json --format=json --usage-file $RESOURCE_USE >> $tmp_dir/infracost.json
