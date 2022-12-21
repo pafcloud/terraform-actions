@@ -98,10 +98,10 @@ runs:
         RESOURCE_USE: ${{ steps.resolve-usage-file.outputs.resource-use }}
       run: |
       
-        echo "RESOURCE USE" $RESOURCE_USE
+        #echo "RESOURCE USE" $RESOURCE_USE
         tmp_dir=$(mktemp -d $RUNNER_TEMP/infracost.XXXXXXXXXX)
         terragrunt show -json $PLAN_FILE > $tmp_dir/plan.json
-        infracost diff --path $tmp_dir/plan.json --format=json --usage-file $RESOURCE_USE >> $tmp_dir/infracost.json
+        infracost diff --path $tmp_dir/plan.json --format=json --usage-file $RUNNER_TEMP/result.yml >> $tmp_dir/infracost.json
 
         # generate normal output from json
         echo "output<<EOF" >> $GITHUB_OUTPUT
