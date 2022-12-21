@@ -56,7 +56,7 @@ runs:
       shell: python 
       env:
         RESOURCE: ${{ steps.resolve-usage-file.outputs.resource-use }}
-        TEMP: ${{ $RUNNER_TEMP }}
+        TEMP: ${{ RUNNER_TEMP }}
       run: |
         import yaml
         import os
