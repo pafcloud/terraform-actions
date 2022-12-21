@@ -55,14 +55,17 @@ runs:
       working-directory: ${{ inputs.working-directory }}
       shell: python 
       env:
-        RESOURCE_USE: ${{ steps.resolve-usage-file.outputs.resource-use }}
+        RESOURCE: ${{ steps.resolve-usage-file.outputs.resource-use }}
       run: |
         import yaml
         import os
+
+        array_str = os.getenv('RESOURCE')
+        array = array_str.split(' ')
         try:
-            with open(os.environ["root"], 'r') as file:
+            with open(array[1], 'r') as file: #Root
                 root = yaml.safe_load(file)
-            with open(os.environ["dev"], 'r') as file2:
+            with open(array[0], 'r') as file2: #Dev
                 dev = yaml.safe_load(file2)
         except:
             print("could not load the resource files")
@@ -93,7 +96,7 @@ runs:
         RESOURCE_USE: ${{ steps.resolve-usage-file.outputs.resource-use }}
       run: |
 
-      
+        echo "RESOURCE USE" $RESOURCE_USE
         tmp_dir=$(mktemp -d $RUNNER_TEMP/infracost.XXXXXXXXXX)
         terragrunt show -json $PLAN_FILE > $tmp_dir/plan.json
         infracost diff --path $tmp_dir/plan.json --format=json --usage-file $RESOURCE_USE >> $tmp_dir/infracost.json
