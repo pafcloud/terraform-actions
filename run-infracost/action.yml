@@ -81,7 +81,7 @@ runs:
 
         try:
             merged_dict = merge_dicts(root, dev)
-            with open(os.environ["root"], 'w') as yaml_file:  #Dumps the file into root file
+            with open(array[0], 'w') as yaml_file:  #Dumps the file into dev file
                 yaml.dump(merged_dict, yaml_file, default_flow_style=False) 
         except:
             print("Could not merget the dev and root files")
