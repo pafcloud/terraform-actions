@@ -44,6 +44,7 @@ runs:
                 fi
                 cd ..
             done
+            echo "${file_path_array[*]}"
         }
         
         resource_use="$(upcat resource-use.yml)"
