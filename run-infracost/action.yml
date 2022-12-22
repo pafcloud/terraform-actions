@@ -5,10 +5,13 @@ inputs:
   plan-file:
     description: Path to saved terraform plan file
     required: true
-
   working-directory:
     description: Working directory, in which the infracost command is run
     required: true
+  infracost-api-point:
+    description: Self-hosted api-point
+    required: false
+    default: https://infracost.pafcloud.net
 
 outputs:
   output:
@@ -101,7 +104,7 @@ runs:
       env:
         INFRACOST_CURRENCY: EUR
         INFRACOST_CURRENCY_FORMAT: "EUR: 1.234,56€"
-        INFRACOST_PRICING_API_ENDPOINT: https://infracost.pafcloud.net
+        INFRACOST_PRICING_API_ENDPOINT: ${{ infracost-api-point }}
         PLAN_FILE: ${{ inputs.plan-file }}
         RESOURCE_USE: ${{ steps.resolve-usage-file.outputs.resource-use }}
       run: |
