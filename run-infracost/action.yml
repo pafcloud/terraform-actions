@@ -44,7 +44,6 @@ runs:
                 fi
                 cd ..
             done
-            echo "${file_path_array[*]}"
         }
         
         resource_use="$(upcat resource-use.yml)"
@@ -108,8 +107,6 @@ runs:
         PLAN_FILE: ${{ inputs.plan-file }}
         RESOURCE_USE: ${{ steps.resolve-usage-file.outputs.resource-use }}
       run: |
-      
-        #echo "RESOURCE USE" $RESOURCE_USE
         tmp_dir=$(mktemp -d $RUNNER_TEMP/infracost.XXXXXXXXXX)
         terragrunt show -json $PLAN_FILE > $tmp_dir/plan.json
         infracost diff --path $tmp_dir/plan.json --format=json --usage-file $RUNNER_TEMP/result.yml >> $tmp_dir/infracost.json
