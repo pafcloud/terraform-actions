@@ -104,7 +104,7 @@ runs:
       env:
         INFRACOST_CURRENCY: EUR
         INFRACOST_CURRENCY_FORMAT: "EUR: 1.234,56€"
-        INFRACOST_PRICING_API_ENDPOINT: ${{ infracost-api-point }}
+        INFRACOST_PRICING_API_ENDPOINT: ${{ inputs.infracost-api-point }}
         PLAN_FILE: ${{ inputs.plan-file }}
         RESOURCE_USE: ${{ steps.resolve-usage-file.outputs.resource-use }}
       run: |
