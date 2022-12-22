@@ -86,7 +86,6 @@ runs:
             return root_dict
         try:
             runner_temp = os.getenv('RUNNER_TEMP')
-            print("RUNNER TEMP:" ,runner_temp)
             merged_dict = merge_dicts(root, dev)
             with open(runner_temp +"/result.yml", 'w') as yaml_file:  # dumps merged dict into results.
                 yaml.dump(merged_dict, yaml_file, default_flow_style=False) 
