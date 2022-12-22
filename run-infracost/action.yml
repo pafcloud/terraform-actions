@@ -37,7 +37,7 @@ runs:
             file="$1"
             while [ "$PWD" != "$search_stop_dir" -a "$PWD" != "/" ]; do
                 if [ -r "$file" ]; then
-                    file_path_array+=("$PWD"/resource-use.yaml)
+                    file_path_array+=("$PWD"/resource-use.yml)
                 fi
                 cd ..
             done
