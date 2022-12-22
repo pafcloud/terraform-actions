@@ -44,9 +44,9 @@ runs:
             echo "${file_path_array[*]}"
         }
         
-        resource_use="$(upcat resource-use.yaml)"
+        resource_use="$(upcat resource-use.yml)"
         if [ -z "$resource_use" ]; then
-            echo "ERROR: Cannot resolve resource-use.yaml: no resource-use.yaml file found"
+            echo "ERROR: Cannot resolve resource-use.yml: no resource-use.yml file found"
             exit 2
         fi        
         echo "resource-use=${resource_use[@]}" >> $GITHUB_OUTPUT
