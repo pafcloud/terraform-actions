@@ -84,12 +84,15 @@ runs:
                         root_dict[key] = value
             return root_dict
         try:
+            print("RESOURCE" , resources)
             runner_temp = os.getenv('RUNNER_TEMP')
             #merge_dicts take bigger -> then smaller
             #higher array index ->higher in tree -> should mean bigger file
             merged_dict = []
-            for x in range(len(array) -1):
+            for x in range(len(resources) -1):
                 merged_dict = merge_dicts(array[x+1], array[x])
+                
+            print(MERDGED DICT, merged_dict)
             with open(runner_temp +"/result.yml", 'w') as yaml_file:  # dumps merged dict into results.
                 yaml.dump(merged_dict, yaml_file, default_flow_style=False) 
         except:
