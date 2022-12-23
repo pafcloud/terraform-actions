@@ -92,7 +92,7 @@ runs:
             for x in range(len(resources) -1):
                 merged_dict = merge_dicts(array[x+1], array[x])
                 
-            print(MERDGED DICT, merged_dict)
+            print("MERDGED DICT", merged_dict)
             with open(runner_temp +"/result.yml", 'w') as yaml_file:  # dumps merged dict into results.
                 yaml.dump(merged_dict, yaml_file, default_flow_style=False) 
         except:
