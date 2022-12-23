@@ -78,7 +78,7 @@ runs:
               print("could not load the resource files")
         try:
             runner_temp = os.getenv('RUNNER_TEMP')
-            merged_dict = dict(collections.ChainMap(root, dev))
+            merged_dict = dict(collections.ChainMap(dev, root))
             with open(runner_temp +"/result.yml", 'w') as yaml_file:  # dumps merged dict into results.
                 yaml.dump(merged_dict, yaml_file, default_flow_style=False) 
         except:
