@@ -81,11 +81,11 @@ runs:
         resources = []
         for filename in os.getenv('RESOURCE', '').split(' '):
           with open(filename, 'r') as file:
-            resources.append(yaml.safe_load(file))
-        resource.reverse()
+            temp = yaml.safe_load(file)
+            print("TEMP: " ,temp)
+            resources.append(temp)
         runner_temp = os.getenv('RUNNER_TEMP')
         merged = merge(*resources)
-        print("merged file", merged)
         with open(runner_temp +"/result.yml", 'w') as yaml_file:  # dumps merged dict into results.
           yaml.dump(merged, yaml_file, default_flow_style=False)
  
