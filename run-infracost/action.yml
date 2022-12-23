@@ -70,7 +70,7 @@ runs:
             # with open(array[0], 'r') as file2: #Dev
             #     dev = yaml.safe_load(file2)
             resources = []
-            for f in array:
+            for f in range(len(array)):
                 with open(array[f], 'r') as file: #Root
                     resources.append(yaml.safe_load(file))
         except:
