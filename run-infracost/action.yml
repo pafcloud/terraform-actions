@@ -85,7 +85,7 @@ runs:
 
         runner_temp = os.getenv('RUNNER_TEMP')
         merged = merge(*resources)
-
+        print("merged file", merged)
         with open(runner_temp +"/result.yml", 'w') as yaml_file:  # dumps merged dict into results.
           yaml.dump(merged, yaml_file, default_flow_style=False)
  
