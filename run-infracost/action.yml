@@ -82,7 +82,6 @@ runs:
         for filename in os.getenv('RESOURCE', '').split(' '):
           with open(filename, 'r') as file:
             temp = yaml.safe_load(file)
-            print("TEMP: " ,temp)
             resources.append(temp)
         runner_temp = os.getenv('RUNNER_TEMP')
         merged = merge(*resources)
