@@ -67,7 +67,7 @@ runs:
         from typing import MutableMapping
 
         def merge(destination: MutableMapping, *sources: Mapping) -> MutableMapping:
-          def merge_dicts(root_dict, dev_dict):
+          def merge_dicts(dev_dict, root_dict):
             for key, value in dev_dict.items():
               if key in root_dict:
                 if isinstance(root_dict[key], dict) and isinstance(value, dict):
