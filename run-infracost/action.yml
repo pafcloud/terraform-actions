@@ -87,10 +87,10 @@ runs:
         runner_temp = os.getenv('RUNNER_TEMP')
         merged = merge(*resources)
 
-        with tempfile.NamedTemporaryFile(dir=runner_temp, suffix="infracost-usage.yml") as yaml_file:
+        with tempfile.NamedTemporaryFile(dir=runner_temp, suffix='infracost-usage.yml', mode='w', delete=False) as yaml_file:
           yaml.dump(merged, yaml_file, default_flow_style=False)
 
-        with open(os.getenv('GITHUB_OUTPUT')) as outputs:
+        with open(os.getenv('GITHUB_OUTPUT'), 'w') as outputs:
           outputs.write("usage-file={}".format(yaml_file.name))
 
     - id: this
