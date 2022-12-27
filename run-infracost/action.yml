@@ -51,7 +51,10 @@ runs:
         }
 
         usage_file="$(upfind infracost-usage.yml)"
-        test -z $usage_file && usage_file_opts="" || usage_file_opts="--usage-file $usage_file"
+        usage_file_opts=""
+        if [ ! -z $usage_file ]; then
+          usage_file_opts="--usage-file $usage_file"
+        fi
 
         tmp_dir=$(mktemp -d $RUNNER_TEMP/infracost.XXXXXXXXXX)
         terragrunt show -json $PLAN_FILE > $tmp_dir/plan.json
