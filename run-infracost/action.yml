@@ -50,7 +50,7 @@ runs:
           done
         }
 
-        usage_file="$(upfind resource-use.yml)"
+        usage_file="$(upfind infracost-usage.yml)"
         test -z $usage_file && usage_file_opts="" || usage_file_opts="--usage-file $usage_file"
 
         tmp_dir=$(mktemp -d $RUNNER_TEMP/infracost.XXXXXXXXXX)
