@@ -24,75 +24,6 @@ outputs:
 runs:
   using: composite
   steps:
-
-    - id: resolve-usage-file
-      name: Resolve infracost default usage file
-      working-directory: ${{ inputs.working-directory }}
-      shell: bash
-      run: |
-        if [ -z "$GITHUB_WORKSPACE" ]; then
-            echo "ERROR: environment variable GITHUB_WORKSPACE is unset"
-            exit 1
-        fi
-        search_stop_dir="$(dirname $GITHUB_WORKSPACE)"
-        upcat() {
-            declare –a file_path_array=()
-            file="$1"
-            while [ "$PWD" != "$search_stop_dir" -a "$PWD" != "/" ]; do
-                if [ -r "$file" ]; then
-                    file_path_array+=("$PWD"/resource-use.yml)
-                fi
-                cd ..
-            done
-            echo "${file_path_array[*]}"
-        }
-
-        resource_use="$(upcat resource-use.yml)"
-        if [ -z "$resource_use" ]; then
-            echo "ERROR: Cannot resolve resource-use.yml: no resource-use.yml file found"
-            exit 2
-        fi
-        echo "resource-use=${resource_use[@]}" >> $GITHUB_OUTPUT
-
-    - id: merge-dictionary-files
-      working-directory: ${{ inputs.working-directory }}
-      shell: python
-      env:
-        RESOURCE: ${{ steps.resolve-usage-file.outputs.resource-use }}
-      run: |
-        import yaml
-        import os
-        import tempfile
-        from collections.abc import Mapping
-        from functools import partial,reduce
-        from typing import MutableMapping
-
-        def merge(destination: MutableMapping, *sources: Mapping) -> MutableMapping:
-          def merge_dicts(d1, d2):
-            for key, value in d1.items():
-              if key in d2:
-                if isinstance(d2[key], dict) and isinstance(value, dict):
-                  d2[key] = merge_dicts(d2[key], value)
-                else:
-                  d2[key] = value
-            return d2
-
-          return reduce(partial(merge_dicts), sources, destination)
-
-        resources = []
-        for filename in os.getenv('RESOURCE', '').split(' '):
-          with open(filename, 'r') as file:
-            temp = yaml.safe_load(file)
-            resources.append(temp)
-        runner_temp = os.getenv('RUNNER_TEMP')
-        merged = merge(*resources)
-
-        with tempfile.NamedTemporaryFile(dir=runner_temp, suffix='infracost-usage.yml', mode='w', delete=False) as yaml_file:
-          yaml.dump(merged, yaml_file, default_flow_style=False)
-
-        with open(os.getenv('GITHUB_OUTPUT'), 'w') as outputs:
-          outputs.write("usage-file={}".format(yaml_file.name))
-
     - id: this
       shell: bash
       working-directory: ${{ inputs.working-directory }}
@@ -101,11 +32,30 @@ runs:
         INFRACOST_CURRENCY_FORMAT: "EUR: 1.234,56€"
         INFRACOST_PRICING_API_ENDPOINT: ${{ inputs.infracost-api-endpoint }}
         PLAN_FILE: ${{ inputs.plan-file }}
-        USAGE_FILE: ${{ steps.merge-dictionary-files.outputs.usage-file }}
       run: |
+        if [ -z "$GITHUB_WORKSPACE" ]; then
+          echo "ERROR: environment variable GITHUB_WORKSPACE is unset"
+          exit 1
+        fi
+
+        search_stop_dir="$(dirname $GITHUB_WORKSPACE)"
+        upfind() {
+          file="$1"
+          while [ "$PWD" != "$search_stop_dir" -a "$PWD" != "/" ]; do
+            if [ -r "$file" ]; then
+              echo "$file"
+              break
+            fi
+            cd ..
+          done
+        }
+
+        usage_file="$(upfind resource-use.yml)"
+        test -z $usage_file && usage_file_opts="" || usage_file_opts="--usage-file $usage_file"
+
         tmp_dir=$(mktemp -d $RUNNER_TEMP/infracost.XXXXXXXXXX)
         terragrunt show -json $PLAN_FILE > $tmp_dir/plan.json
-        infracost diff --path $tmp_dir/plan.json --format=json --usage-file $USAGE_FILE >> $tmp_dir/infracost.json
+        infracost diff --path $tmp_dir/plan.json --format=json $usage_file_opts >> $tmp_dir/infracost.json
 
         # generate normal output from json
         echo "output<<EOF" >> $GITHUB_OUTPUT
