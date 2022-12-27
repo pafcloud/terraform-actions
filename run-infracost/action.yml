@@ -8,8 +8,8 @@ inputs:
   working-directory:
     description: Working directory, in which the infracost command is run
     required: true
-  infracost-api-point:
-    description: Self-hosted api-point
+  infracost-api-endpoint:
+    description: Self-hosted api-endpoint
     required: false
     default: https://infracost.pafcloud.net
 
@@ -24,7 +24,7 @@ outputs:
 runs:
   using: composite
   steps:
-  
+
     - id: resolve-usage-file
       name: Resolve infracost default usage file
       working-directory: ${{ inputs.working-directory }}
@@ -46,35 +46,36 @@ runs:
             done
             echo "${file_path_array[*]}"
         }
-        
+
         resource_use="$(upcat resource-use.yml)"
         if [ -z "$resource_use" ]; then
             echo "ERROR: Cannot resolve resource-use.yml: no resource-use.yml file found"
             exit 2
-        fi        
+        fi
         echo "resource-use=${resource_use[@]}" >> $GITHUB_OUTPUT
-       
+
     - id: merge-dictionary-files
       working-directory: ${{ inputs.working-directory }}
-      shell: python 
+      shell: python
       env:
         RESOURCE: ${{ steps.resolve-usage-file.outputs.resource-use }}
       run: |
         import yaml
         import os
+        import tempfile
         from collections.abc import Mapping
         from functools import partial,reduce
         from typing import MutableMapping
 
         def merge(destination: MutableMapping, *sources: Mapping) -> MutableMapping:
-          def merge_dicts(dev_dict, root_dict):
-            for key, value in dev_dict.items():
-              if key in root_dict:
-                if isinstance(root_dict[key], dict) and isinstance(value, dict):
-                  root_dict[key] = merge_dicts(root_dict[key], value)
+          def merge_dicts(d1, d2):
+            for key, value in d1.items():
+              if key in d2:
+                if isinstance(d2[key], dict) and isinstance(value, dict):
+                  d2[key] = merge_dicts(d2[key], value)
                 else:
-                  root_dict[key] = value
-            return root_dict
+                  d2[key] = value
+            return d2
 
           return reduce(partial(merge_dicts), sources, destination)
 
@@ -85,22 +86,26 @@ runs:
             resources.append(temp)
         runner_temp = os.getenv('RUNNER_TEMP')
         merged = merge(*resources)
-        with open(runner_temp +"/result.yml", 'w') as yaml_file:  # dumps merged dict into results.
+
+        with tempfile.NamedTemporaryFile(dir=runner_temp, suffix="infracost-usage.yml") as yaml_file:
           yaml.dump(merged, yaml_file, default_flow_style=False)
- 
+
+        with open(os.getenv('GITHUB_OUTPUT')) as outputs:
+          outputs.write("usage-file={}".format(yaml_file.name))
+
     - id: this
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       env:
         INFRACOST_CURRENCY: EUR
         INFRACOST_CURRENCY_FORMAT: "EUR: 1.234,56€"
-        INFRACOST_PRICING_API_ENDPOINT: ${{ inputs.infracost-api-point }}
+        INFRACOST_PRICING_API_ENDPOINT: ${{ inputs.infracost-api-endpoint }}
         PLAN_FILE: ${{ inputs.plan-file }}
-        RESOURCE_USE: ${{ steps.resolve-usage-file.outputs.resource-use }}
+        USAGE_FILE: ${{ steps.merge-dictionary-files.outputs.usage-file }}
       run: |
         tmp_dir=$(mktemp -d $RUNNER_TEMP/infracost.XXXXXXXXXX)
         terragrunt show -json $PLAN_FILE > $tmp_dir/plan.json
-        infracost diff --path $tmp_dir/plan.json --format=json --usage-file $RUNNER_TEMP/result.yml >> $tmp_dir/infracost.json
+        infracost diff --path $tmp_dir/plan.json --format=json --usage-file $USAGE_FILE >> $tmp_dir/infracost.json
 
         # generate normal output from json
         echo "output<<EOF" >> $GITHUB_OUTPUT
