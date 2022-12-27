@@ -38,9 +38,10 @@ runs:
           exit 1
         fi
 
-        search_stop_dir="$(dirname $GITHUB_WORKSPACE)"
         upfind() {
           file="$1"
+          search_stop_dir="$(dirname $GITHUB_WORKSPACE)"
+
           while [ "$PWD" != "$search_stop_dir" -a "$PWD" != "/" ]; do
             if [ -r "$file" ]; then
               echo "$file"
