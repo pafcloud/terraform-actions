@@ -10,8 +10,7 @@ inputs:
     required: true
   infracost-api-endpoint:
     description: Self-hosted api-endpoint
-    required: false
-    default: https://infracost.pafcloud.net
+    required: true
 
 outputs:
   output:
