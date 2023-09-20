@@ -18,7 +18,7 @@ inputs:
   install-terraform-wrapper:
     description: Install terraform wrapper script that automatically exposes stdout, stderr and exit code as outputs?
     required: false
-    default: true
+    default: 'true'
 
 runs:
   using: composite
