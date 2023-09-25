@@ -18,7 +18,7 @@ inputs:
   install-terraform-wrapper:
     description: Install terraform wrapper script that automatically exposes stdout, stderr and exit code as outputs?
     required: false
-    default: true
+    default: 'true'
 
 runs:
   using: composite
@@ -73,21 +73,39 @@ runs:
       with:
         terraform_version: ${{ steps.resolve-versions.outputs.tf-version }}
         terraform_wrapper: ${{ inputs.install-terraform-wrapper }}
+
+    - name: Resolve architecture
+      id: resolve-architecture
+      shell: bash
+      run: |
+        case "$(uname -m)" in
+          x86_64)
+            echo "cpu-architecture=amd64" >> $GITHUB_OUTPUT
+            ;;
+          arm64|aarch64)
+            echo "cpu-architecture=arm64" >> $GITHUB_OUTPUT
+            ;;
+          *)
+            echo "ERROR: Unsupported CPU architecture: $(uname -m)"
+            exit 4
+            ;;
+        esac
     
     - name: Setup terragrunt
       shell: bash
       run: |
         download_base_url="https://github.com/gruntwork-io/terragrunt/releases/download/v$TERRAGRUNT_VERSION"
-        bin_download_url="${download_base_url}/terragrunt_linux_amd64"
+        bin_download_url="${download_base_url}/terragrunt_linux_${CPU_ARCHITECTURE}"
         shasums_download_url="${download_base_url}/SHA256SUMS"
         curl -fsSLOJ --retry 3 "$bin_download_url"
         curl -fsSLOJ --retry 3 "$shasums_download_url"
         sha256sum -c --ignore-missing 2>/dev/null SHA256SUMS
         tmp_bin_dir="$(mktemp -d $RUNNER_TEMP/XXXXXXXXXX)"
         terragrunt_bin="$tmp_bin_dir/terragrunt"
-        mv terragrunt_linux_amd64 "$terragrunt_bin"
+        mv terragrunt_linux_${CPU_ARCHITECTURE} "$terragrunt_bin"
         rm SHA256SUMS
         chmod +x "$terragrunt_bin"
         echo "$tmp_bin_dir" >> $GITHUB_PATH
       env:
         TERRAGRUNT_VERSION: ${{ steps.resolve-versions.outputs.tg-version }}
+        CPU_ARCHITECTURE: ${{ steps.resolve-architecture.outputs.cpu-architecture }}
