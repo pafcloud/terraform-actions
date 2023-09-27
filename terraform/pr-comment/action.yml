@@ -20,12 +20,6 @@ inputs:
   working-directory:
     description: Working directory
     required: true
-  infracost-output:
-    description: Cost Estimation Details
-    required: true
-  infracost-summary:
-    description: Cost Estimation Summary
-    required: true
 
 runs:
   using: composite
@@ -61,8 +55,7 @@ runs:
 
           echo
           if [ "$3" = "plan-for-apply" ]; then
-            echo "Please review the plan above, ask code owners to approve this pull request, and then run terraform apply by commenting <code>/apply</code> or by merging this PR.
-            For a more accurate cost estimation add a <code>infracost-usage.yml</code> file to this PR."
+            echo "Please review the plan above, ask code owners to approve this pull request, and then run terraform apply by commenting <code>/apply</code> or by merging this PR."
           else
             echo "Please review the plan above, ask code owners to approve this pull request, and then run terraform destroy by merging this PR"
           fi
@@ -106,7 +99,7 @@ runs:
         case "${RUN_TYPE}" in
           plan-for-apply|plan-for-destroy)
             if [ ${EXIT_CODE} -eq 0 ]; then
-              MSG=$(plan_msg "${WORKING_DIRECTORY}" "${OUTPUT}" "${RUN_TYPE}" "${INFRACOST_OUTPUT}" "${INFRACOST_SUMMARY}")
+              MSG=$(plan_msg "${WORKING_DIRECTORY}" "${OUTPUT}" "${RUN_TYPE}")
             else
               MSG=$(failed_plan_msg "${WORKING_DIRECTORY}" "${OUTPUT}")
             fi
@@ -145,8 +138,6 @@ runs:
         RUN_TYPE: ${{ inputs.terraform-run-type }}
         WORKING_DIRECTORY: ${{ inputs.working-directory }}
         OUTPUT: ${{ inputs.terraform-output }}
-        INFRACOST_OUTPUT: ${{ inputs.infracost-output }}
-        INFRACOST_SUMMARY: ${{ inputs.infracost-summary }}
         EXIT_CODE: ${{ inputs.terraform-exit-code }}
         PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
