@@ -46,8 +46,6 @@ runs:
           echo "### Terraform Plan :clipboard:"
           summary_title="Show output"
           details terraform closed "$2" "$summary_title"
-          echo ""
-
           echo
           if [ "$3" = "plan-for-apply" ]; then
             echo "Please review the plan above, ask code owners to approve this pull request, and then run terraform apply by commenting <code>/apply</code> or by merging this PR."
