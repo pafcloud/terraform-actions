@@ -32,7 +32,7 @@ runs:
             open=" open";
           fi
 
-          echo "<details${open}><summary>" $4 "</summary>"
+          echo "<details${open}><summary>"Show output"</summary>"
           echo
           echo "\`\`\`${fmt}"
           echo "$(python3 -c 'import sys; print(sys.stdin.read().strip())' <<< $3)"
