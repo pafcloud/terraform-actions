@@ -141,7 +141,7 @@ runs:
         header: pr-comment
         number: ${{ inputs.pull-request-number }}
         message: |
-          "${MSG}"
+          ${{ MSG }}
       
     - name: Hide outdated pull request comment 
       uses: marocchino/sticky-pull-request-comment@v2
