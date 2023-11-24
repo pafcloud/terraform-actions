@@ -137,11 +137,11 @@ runs:
 
     - name: Add pull request comment  
       uses: marocchino/sticky-pull-request-comment@v2
-       with:
-         header: pr-comment
-         number: ${{ inputs.pr-number }}
-         message: |
-           ${MSG}
+      with:
+        header: pr-comment
+        number: ${{ inputs.pr-number }}
+        message: |
+          ${MSG}
       
     - name: Hide outdated pull request comment 
       uses: marocchino/sticky-pull-request-comment@v2
