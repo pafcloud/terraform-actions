@@ -122,6 +122,7 @@ runs:
             exit 5
         esac
 
+        echo "Comment=$MSG" >> "$GITHUB_ENV"
    #     for t in 0 1 5 10 30 30 60; do
    #       sleep $t && gh pr comment ${PULL_REQUEST_NUMBER} --body "${MSG}" && break
    #     done
@@ -141,7 +142,7 @@ runs:
         header: pr-comment
         number: ${{ inputs.pull-request-number }}
         message: |
-          echo ${{ env.MSG }}
+          ${{ env.Comment }}
       
     - name: Hide outdated pull request comment 
       uses: marocchino/sticky-pull-request-comment@v2
