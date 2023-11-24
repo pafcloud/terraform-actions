@@ -139,14 +139,14 @@ runs:
       uses: marocchino/sticky-pull-request-comment@v2
       with:
         header: pr-comment
-        number: ${{ inputs.pr-number }}
+        number: ${{ inputs.pull-request-number }}
         message: |
-          ${MSG}
+          "${MSG}"
       
     - name: Hide outdated pull request comment 
       uses: marocchino/sticky-pull-request-comment@v2
       with:
         header: pr-comment
-        number: ${{ inputs.pr-number }}
+        number: ${{ inputs.pull-request-number }}
         hide: true
         hide_classify: 'OUTDATED'
