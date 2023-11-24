@@ -122,9 +122,9 @@ runs:
             exit 5
         esac
 
-        for t in 0 1 5 10 30 30 60; do
-          sleep $t && gh pr comment ${PULL_REQUEST_NUMBER} --body "${MSG}" && break
-        done
+   #     for t in 0 1 5 10 30 30 60; do
+   #       sleep $t && gh pr comment ${PULL_REQUEST_NUMBER} --body "${MSG}" && break
+   #     done
 
       shell: bash
       env:
@@ -134,3 +134,19 @@ runs:
         EXIT_CODE: ${{ inputs.terraform-exit-code }}
         PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
+
+    - name: Add pull request comment  
+      uses: marocchino/sticky-pull-request-comment@v2
+       with:
+         header: pr-comment
+         number: ${{ inputs.pr-number }}
+         message: |
+           ${MSG}
+      
+    - name: Hide outdated pull request comment 
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        header: pr-comment
+        number: ${{ inputs.pr-number }}
+        hide: true
+        hide_classify: 'OUTDATED'
