@@ -124,7 +124,7 @@ runs:
 
         echo "Comment=<<EOF" >> $GITHUB_ENV
         echo $MSG >> $GITHUB_ENV
-        echo "EOF" >> $GITHUB_ENV
+        echo EOF >> $GITHUB_ENV
 
    #     for t in 0 1 5 10 30 30 60; do
    #       sleep $t && gh pr comment ${PULL_REQUEST_NUMBER} --body "${MSG}" && break
