@@ -122,7 +122,7 @@ runs:
             exit 5
         esac
 
-        echo "Comment<<EOF" >> $GITHUB_ENV
+        echo "pr_comment<<EOF" >> $GITHUB_ENV
         echo "${MSG}" >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
 
@@ -149,4 +149,4 @@ runs:
         header: pr-comment
         number: ${{ inputs.pull-request-number }}
         message: |
-           ${{ env.Comment }}
+           ${{ env.pr_comment }}
