@@ -122,13 +122,9 @@ runs:
             exit 5
         esac
 
-        
         echo "Comment<<EOF" >> $GITHUB_ENV
         echo "${MSG}" >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
-   #     for t in 0 1 5 10 30 30 60; do
-   #       sleep $t && gh pr comment ${PULL_REQUEST_NUMBER} --body "${MSG}" && break
-   #     done
 
       shell: bash
       env:
@@ -139,7 +135,7 @@ runs:
         PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
 
-    - name: Hide outdated pull request comment 
+      name: Hide outdated pull request comment 
       uses: marocchino/sticky-pull-request-comment@v2
       with:
         header: pr-comment
@@ -147,7 +143,7 @@ runs:
         hide: true
         hide_classify: 'OUTDATED'
 
-    - name: Add pull request comment  
+      name: Add pull request comment  
       uses: marocchino/sticky-pull-request-comment@v2
       with:
         header: pr-comment
