@@ -150,5 +150,4 @@ runs:
         header: pr-comment
         number: ${{ inputs.pull-request-number }}
         message: |
-          printf '%s\n' "$Comment"
-      
+          echo ${{ env.Comment }}      
