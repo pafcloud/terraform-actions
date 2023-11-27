@@ -42,8 +42,8 @@ runs:
 
         plan_msg() {
 
-          echo "## "$1""
-          echo "### Terraform Plan :clipboard:"
+          echo "## "$1"\n"
+          echo "### Terraform Plan :clipboard:\n"
           summary_title="Show output"
           details terraform closed "$2" "$summary_title"
           echo
