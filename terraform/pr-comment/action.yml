@@ -42,8 +42,8 @@ runs:
 
         plan_msg() {
 
-          echo "## "$1"\n"
-          echo "### Terraform Plan :clipboard:\n"
+          echo "## "$1""
+          echo "### Terraform Plan :clipboard:"
           summary_title="Show output"
           details terraform closed "$2" "$summary_title"
           echo
@@ -153,4 +153,4 @@ runs:
         header: pr-comment
         number: ${{ inputs.pull-request-number }}
         message: |
-          '${{ env.Comment }}'
+           ${{ env.Comment }}
