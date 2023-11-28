@@ -138,7 +138,7 @@ runs:
     - name: Hide outdated pull request comment 
       uses: marocchino/sticky-pull-request-comment@v2
       with:
-        header: pr-comment
+        header: ${{ inputs.working-directory }}
         number: ${{ inputs.pull-request-number }}
         hide: true
         hide_classify: "OUTDATED"
@@ -146,7 +146,7 @@ runs:
     - name: Add pull request comment  
       uses: marocchino/sticky-pull-request-comment@v2
       with:
-        header: pr-comment
+        header: ${{ inputs.working-directory }}
         number: ${{ inputs.pull-request-number }}
         message: |
            ${{ env.pr_comment }}
