@@ -140,9 +140,10 @@ runs:
       with:
         header: ${{ inputs.working-directory }}
         number: ${{ inputs.pull-request-number }}
+        ignore_empty: true
         hide: true
         hide_classify: "OUTDATED"
-
+      
     - name: Add pull request comment  
       uses: marocchino/sticky-pull-request-comment@v2
       with:
