@@ -37,11 +37,11 @@ runs:
       run: |
         output_file="$(mktemp /tmp/terragrunt-output.XXXXXXXX)"
         set +e
-        terragrunt $CMD_LINE_ARGS -out=${{ runner.temp }}/${{ github.run_id }}.tfplan 2>&1 | tee $output_file
+        terragrunt $CMD_LINE_ARGS 2>&1 | tee $output_file
         exit_code="$?"
         set -e
         if [ "$exit_code" = "0" ]; then
-          terragrunt show -no-color ${{ runner.temp }}/${{ github.run_id }}.tfplan > $output_file
+          cat $output_file | grep -v "Refreshing state...\|Reading...\|Read complete after" > $output_file
         fi
         echo "exit-code=$exit_code" >> $GITHUB_OUTPUT
         output_delimiter="TG_EOF_$(openssl rand -hex 8)"
