@@ -39,12 +39,12 @@ runs:
         set +e
         terragrunt $CMD_LINE_ARGS 2>&1 | tee $output_file
         exit_code="$?"
-        set -e
         if [ "$exit_code" = "0" ]; then
           temp_file="$(mktemp /tmp/terragrunt-output.XXXXXXXX.tmp)"
           grep -v "Refreshing state...\|Reading...\|Read complete after" $output_file > $temp_file
           mv $temp_file $output_file
         fi
+        set -e
         echo "exit-code=$exit_code" >> $GITHUB_OUTPUT
         output_delimiter="TG_EOF_$(openssl rand -hex 8)"
         echo "output<<$output_delimiter" >> $GITHUB_OUTPUT
