@@ -41,7 +41,7 @@ runs:
         exit_code="$?"
         set -e
         if [ "$exit_code" = "0" ]; then
-          terragrunt show ${{ runner.temp }}/${{ github.run_id }}.tfplan > $output_file
+          terragrunt show -no-color ${{ runner.temp }}/${{ github.run_id }}.tfplan > $output_file
         fi
         echo "exit-code=$exit_code" >> $GITHUB_OUTPUT
         output_delimiter="TG_EOF_$(openssl rand -hex 8)"
