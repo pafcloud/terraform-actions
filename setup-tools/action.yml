@@ -69,7 +69,7 @@ runs:
         DEFAULT_TG_VERSION: ${{ inputs.default-terragrunt-version }}
   
     - name: Setup terraform
-      uses: hashicorp/setup-terraform@v2
+      uses: hashicorp/setup-terraform@v3
       with:
         terraform_version: ${{ steps.resolve-versions.outputs.tf-version }}
         terraform_wrapper: ${{ inputs.install-terraform-wrapper }}
