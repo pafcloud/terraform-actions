@@ -141,13 +141,7 @@ runs:
         header: ${{ inputs.working-directory }}-${{ github.workflow }}
         number: ${{ inputs.pull-request-number }}
         ignore_empty: true
-        hide: true
+        hide_and_recreate: true
         hide_classify: "OUTDATED"
-      
-    - name: Add pull request comment  
-      uses: marocchino/sticky-pull-request-comment@331f8f5b4215f0445d3c07b4967662a32a2d3e31 # v2.9.0
-      with:
-        header: ${{ inputs.working-directory }}-${{ github.workflow }}
-        number: ${{ inputs.pull-request-number }}
         message: |
            ${{ env.pr_comment }}
