@@ -135,10 +135,13 @@ runs:
         PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
 
+    - name: Get calling workflow
+      run: echo "WORKFLOW_NAME=${GITHUB_WORKFLOW}" >> $GITHUB_ENV
+
     - name: Hide outdated pull request comment 
       uses: marocchino/sticky-pull-request-comment@331f8f5b4215f0445d3c07b4967662a32a2d3e31 # v2.9.0
       with:
-        header: ${{ inputs.working-directory }}
+        header: ${{ inputs.working-directory }}-${{ env.WORKFLOW_NAME }}
         number: ${{ inputs.pull-request-number }}
         ignore_empty: true
         hide: true
@@ -147,7 +150,7 @@ runs:
     - name: Add pull request comment  
       uses: marocchino/sticky-pull-request-comment@331f8f5b4215f0445d3c07b4967662a32a2d3e31 # v2.9.0
       with:
-        header: ${{ inputs.working-directory }}
+        header: ${{ inputs.working-directory }}-${{ env.WORKFLOW_NAME }}
         number: ${{ inputs.pull-request-number }}
         message: |
            ${{ env.pr_comment }}
