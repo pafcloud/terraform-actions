@@ -62,7 +62,7 @@ runs:
 
           if [ ! -z "$4" ]; then
             echo "### Trivy scan failures: $4"
-            details text close "$5" "Show output"
+            details text closed "$5" "Show output"
           fi
 
           if [ "$3" = "plan-for-apply" ]; then
