@@ -1,0 +1,57 @@
+name: run-trivy
+description: Runs trivy scan for terraform plan
+
+inputs:
+  terraform-plan:
+    description: Path to saved plan
+    type: string
+    required: true
+  working-directory:
+    description: Working directory, in which the scan is run
+    type: string
+    required: true
+  trivy-severity:
+    description: Severities of security issues to be displayed (UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL)
+    type: string
+    required: false
+    default: HIGH,CRITICAL
+
+outputs:
+  failures:
+    description: Summary of failures
+    value: ${{ steps.post.outputs.failures }}
+  output:
+    description: Trivy output
+    value: ${{ steps.post.outputs.output }}
+
+runs:
+  using: composite
+  steps:
+    - id: pre
+      run: cp $TF_PLAN $WORKING_DIR/plan.tfplan
+      shell: bash
+      env:
+        TF_PLAN: ${{ inputs.terraform-plan }}
+        WORKING_DIR: ${{ inputs.working-directory }}
+
+    - id: run
+      uses: aquasecurity/trivy-action@0.19.0
+      with:
+        scan-type: config
+        scan-ref: ${{ inputs.working-directory }}/plan.tfplan
+        severity: ${{ inputs.trivy-severity }}
+        output: trivy.out
+      continue-on-error: true
+
+    - id: post
+      run: |
+        echo "output<<EOF" >> $GITHUB_OUTPUT
+        cat trivy.out >> $GITHUB_OUTPUT
+        echo EOF >> $GITHUB_OUTPUT
+
+        echo failures=$(grep "^Failures: " trivy.out | cut -c11-) >> $GITHUB_OUTPUT
+
+        rm $WORKING_DIR/plan.tfplan
+      shell: bash
+      env:
+        WORKING_DIR: ${{ inputs.working-directory }}

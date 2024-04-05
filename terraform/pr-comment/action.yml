@@ -4,22 +4,36 @@ description: Adds terraform plan, apply or destroy output to a pull request comm
 inputs:
   github-token:
     description: GitHub auth token
+    type: string
     required: true
   terraform-output:
     description: Terraform output (stdout)
+    type: string
     required: true
   terraform-exit-code:
     description: Terraform exit code
+    type: number
     required: true
   terraform-run-type:
     description: Terraform run type, i.e. plan-for-apply, plan-for-destroy, apply-on-comment, apply-on-merge or destroy-on-merge
+    type: string
     required: true
   pull-request-number:
     description: Pull request number
+    type: number
     required: true
   working-directory:
     description: Working directory
+    type: string
     required: true
+  trivy-failures:
+    required: false
+    type: string
+    default: ''
+  trivy-output:
+    required: false
+    type: string
+    default: ''
 
 runs:
   using: composite
@@ -41,12 +55,16 @@ runs:
         }
 
         plan_msg() {
-
           echo "## "$1""
           echo "### Terraform Plan :clipboard:"
-          summary_title="Show output"
-          details terraform closed "$2" "$summary_title"
+          details terraform closed "$2" "Show output"
           echo
+
+          if [ ! -z "$4" ]; then
+            echo "### Trivy scan failures: $4"
+            details text close "$5" "Show output"
+          fi
+
           if [ "$3" = "plan-for-apply" ]; then
             echo "Please review the plan above, ask code owners to approve this pull request, and then run terraform apply by commenting <code>/apply</code> or by merging this PR."
           else
@@ -91,29 +109,29 @@ runs:
 
         case "${RUN_TYPE}" in
           plan-for-apply|plan-for-destroy)
-            if [ ${EXIT_CODE} -eq 0 ]; then
-              MSG=$(plan_msg "${WORKING_DIRECTORY}" "${OUTPUT}" "${RUN_TYPE}")
+            if [ $TF_EXIT_CODE -eq 0 ]; then
+              MSG=$(plan_msg "${WORKING_DIRECTORY}" "${TF_OUTPUT}" "${RUN_TYPE}" "${TRIVY_FAILURES}" "${TRIVY_OUTPUT}")
             else
-              MSG=$(failed_plan_msg "${WORKING_DIRECTORY}" "${OUTPUT}")
+              MSG=$(failed_plan_msg "${WORKING_DIRECTORY}" "${TF_OUTPUT}")
             fi
             ;;
 
           apply-on-comment|apply-on-merge)
-            if [ $EXIT_CODE -eq 0 ]; then
-              MSG=$(apply_msg "${WORKING_DIRECTORY}" "${OUTPUT}" "${RUN_TYPE}")
+            if [ $TF_EXIT_CODE -eq 0 ]; then
+              MSG=$(apply_msg "${WORKING_DIRECTORY}" "${TF_OUTPUT}" "${RUN_TYPE}")
             else
-              MSG=$(failed_apply_msg "${WORKING_DIRECTORY}" "${OUTPUT}")
+              MSG=$(failed_apply_msg "${WORKING_DIRECTORY}" "${TF_OUTPUT}")
             fi
             ;;
 
           destroy-on-merge)
-            if [ $EXIT_CODE -eq 0 ]; then
-              MSG=$(destroy_msg "${WORKING_DIRECTORY}" "${OUTPUT}")
+            if [ $TF_EXIT_CODE -eq 0 ]; then
+              MSG=$(destroy_msg "${WORKING_DIRECTORY}" "${TF_OUTPUT}")
             else
               auth="Authorization: Bearer ${{ inputs.github-token }}"
               pr_url="https://api.github.com/repos/${{ github.repository }}/pulls/${{ inputs.pull-request-number }}"
               pr_base_sha=$(curl -sH "$auth" "$pr_url" | jq -r .base.sha)
-              MSG=$(failed_destroy_msg "${WORKING_DIRECTORY}" "${OUTPUT}" "${pr_base_sha}")
+              MSG=$(failed_destroy_msg "${WORKING_DIRECTORY}" "${TF_OUTPUT}" "${pr_base_sha}")
             fi
             ;;
 
@@ -130,12 +148,14 @@ runs:
       env:
         RUN_TYPE: ${{ inputs.terraform-run-type }}
         WORKING_DIRECTORY: ${{ inputs.working-directory }}
-        OUTPUT: ${{ inputs.terraform-output }}
-        EXIT_CODE: ${{ inputs.terraform-exit-code }}
+        TF_OUTPUT: ${{ inputs.terraform-output }}
+        TF_EXIT_CODE: ${{ inputs.terraform-exit-code }}
+        TRIVY_FAILURES: ${{ inputs.trivy-failures }}
+        TRIVY_OUTPUT: ${{ inputs.trivy-output }}
         PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
 
-    - name: Hide outdated pull request comment 
+    - name: Hide outdated pull request comment
       uses: marocchino/sticky-pull-request-comment@331f8f5b4215f0445d3c07b4967662a32a2d3e31 # v2.9.0
       with:
         header: ${{ inputs.working-directory }}-${{ github.workflow }}
