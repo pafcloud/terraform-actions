@@ -41,7 +41,7 @@ runs:
         exit_code="$?"
         if [ "$exit_code" = "0" ]; then
           temp_file="$(mktemp /tmp/terragrunt-output.XXXXXXXX.tmp)"
-          grep -v "Refreshing state...\|Reading...\|Preparing import...\|Read complete after\|Downloading Terraform configurations from file" $output_file > $temp_file
+          grep -v "Refreshing state...\|Reading...\|Preparing import...\|Read complete after\|Downloading Terraform configurations from" $output_file > $temp_file
           mv $temp_file $output_file
         fi
         set -e
