@@ -33,17 +33,26 @@ runs:
       env:
         TF_PLAN: ${{ inputs.terraform-plan }}
         WORKING_DIR: ${{ inputs.working-directory }}
-
+        
+    - id: check-trivyignore
+      run: |
+        if [ ! -f "${{ inputs.working-directory }}/.trivyignore" ]; then
+          echo "TRIVY_IGNORES=" >> $GITHUB_ENV
+        fi
+      shell: bash
+      env:
+        WORKING_DIR: ${{ inputs.working-directory }}
+        
     - id: run
       uses: aquasecurity/trivy-action@d710430a6722f083d3b36b8339ff66b32f22ee55 # 0.19.0
       with:
         scan-type: config
         scan-ref: ${{ inputs.working-directory }}/plan.tfplan
         severity: ${{ inputs.trivy-severity }}
-        trivyignores: ${{ inputs.working-directory }}/.trivyignore
+        trivyignores: ${{ env.TRIVY_IGNORES }}
         output: trivy.out
       continue-on-error: true
-
+        
     - id: post
       run: |
         echo "output<<EOF" >> $GITHUB_OUTPUT
@@ -56,3 +65,5 @@ runs:
       shell: bash
       env:
         WORKING_DIR: ${{ inputs.working-directory }}
+        
+
