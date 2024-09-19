@@ -54,7 +54,7 @@ runs:
         trivyignores: ${{ env.TRIVY_IGNORES }}
         output: trivy.out
       continue-on-error: true
-        
+
     - id: post
       run: |
         echo "output<<EOF" >> $GITHUB_OUTPUT
@@ -67,5 +67,3 @@ runs:
       shell: bash
       env:
         WORKING_DIR: ${{ inputs.working-directory }}
-        
-
