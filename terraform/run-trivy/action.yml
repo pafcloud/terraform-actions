@@ -40,18 +40,16 @@ runs:
         trivyignore_file=""
         upcat() {
             file="$1"
-            latest_file_found=""
             while [ "$PWD" != "$search_stop_dir" -a "$PWD" != "/" ]; do
                 if [ -r "$file" ]; then
-                    # echo "$PWD/$file"
-                    # break
-                    latest_file_found="$PWD/$file"
+                  echo "$PWD/$file"
+                  break
                 fi
                 cd ..
             done
-            echo "$latest_file_found"            
         }
         pwd
+        echo "working directory= ${{ inputs.working-directory }}"
         trivyignore_file="$(upcat .trivyignore)"
         echo "--------"
         echo "Found Trivy ignore file: $trivyignore_file"
