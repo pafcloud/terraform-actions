@@ -42,7 +42,7 @@ runs:
             file="$1"
             while [ "$PWD" != "$search_stop_dir" -a "$PWD" != "/" ]; do
                 if [ -r "$file" ]; then
-                    cat "$file"
+                    echo "$PWD/$file"
                     break
                 fi
                 cd ..
