@@ -48,11 +48,12 @@ runs:
                 cd ..
             done
         }
+        pwd
         trivyignore_file="$(upcat .trivyignore)"
-        echo "--------" >> $GITHUB_OUTPUT
-        echo $trivyignore_file >> $GITHUB_OUTPUT
-        echo "--------" >> $GITHUB_OUTPUT
-
+        echo "--------"
+        echo $trivyignore_file
+        echo "--------"
+        pwd
         if [ -f "${{ inputs.working-directory }}/.trivyignore" ]; then
           echo "TRIVY_IGNORES=${{ inputs.working-directory }}/.trivyignore" >> $GITHUB_ENV
         else
