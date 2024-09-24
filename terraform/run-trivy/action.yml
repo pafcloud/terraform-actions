@@ -36,7 +36,7 @@ runs:
         
     - id: check-trivyignore
       run: |
-        echo "pwd=$PWD"
+        echo "current working directory from env=$PWD"
         search_stop_dir="${{ inputs.working-directory }}"
         trivyignore_file=""
         upcat() {
