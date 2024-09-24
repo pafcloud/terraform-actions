@@ -46,6 +46,7 @@ runs:
                 cd ..
             done
         }
+        cd "${{ inputs.working-directory }}"
         echo "current working directory from env=$PWD"
         pwd
         echo "inputs-work-dir= ${{ inputs.working-directory }}"
