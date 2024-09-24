@@ -36,6 +36,23 @@ runs:
         
     - id: check-trivyignore
       run: |
+        search_stop_dir="${{ inputs.working-directory }}"
+        trivyignore_file=""
+        upcat() {
+            file="$1"
+            while [ "$PWD" != "$search_stop_dir" -a "$PWD" != "/" ]; do
+                if [ -r "$file" ]; then
+                    cat "$file"
+                    break
+                fi
+                cd ..
+            done
+        }
+        trivyignore_file="$(upcat .trivyignore)"
+        echo "--------"
+        echo $trivyignore_file
+        echo "--------"
+
         if [ -f "${{ inputs.working-directory }}/.trivyignore" ]; then
           echo "TRIVY_IGNORES=${{ inputs.working-directory }}/.trivyignore" >> $GITHUB_ENV
         else
