@@ -50,6 +50,7 @@ runs:
             done
         }
         pwd
+        echo "current working directory from env=$PWD"
         echo "working directory= ${{ inputs.working-directory }}"
         trivyignore_file="$(upcat .trivyignore)"
         echo "--------"
