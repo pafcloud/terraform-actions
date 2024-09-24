@@ -51,7 +51,7 @@ runs:
         pwd
         trivyignore_file="$(upcat .trivyignore)"
         echo "--------"
-        echo $trivyignore_file
+        echo "Found Trivy ignore file: $trivyignore_file"
         echo "--------"
         pwd
         if [ -f "${{ inputs.working-directory }}/.trivyignore" ]; then
