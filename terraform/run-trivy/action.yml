@@ -36,7 +36,7 @@ runs:
         
     - id: check-trivyignore
       run: |
-        upcat() {
+        findfile() {
             file="$1"
             while [ "$PWD" != "$search_stop_dir" -a "$PWD" != "/" ]; do
                 if [ -r "$file" ]; then
@@ -50,27 +50,27 @@ runs:
         search_stop_dir="/"
         cd "${{ inputs.working-directory }}"
         
-        echo "current working directory from env=$PWD"
-        pwd
-        echo "inputs-work-dir= ${{ inputs.working-directory }}"
-        echo "search_stop_dir= $search_stop_dir"
-        echo "search_stop_dir= $search_stop_dir"
+        # echo "current working directory from env=$PWD"
+        # pwd
+        # echo "inputs-work-dir= ${{ inputs.working-directory }}"
+        # echo "search_stop_dir= $search_stop_dir"
+        # echo "search_stop_dir= $search_stop_dir"
         
         # search_stop_dir="${{ inputs.working-directory }}"
         trivyignore_file=""
-        trivyignore_file="$(upcat .trivyignore)"
+        trivyignore_file="$(findfile .trivyignore)"
 
         echo "--------"
         echo "Found Trivy ignore file: $trivyignore_file"
         echo "--------"
-
-        if [ -f "${{ inputs.working-directory }}/.trivyignore" ]; then
-          echo "TRIVY_IGNORES=${{ inputs.working-directory }}/.trivyignore" >> $GITHUB_ENV
-          echo "TRIVY_IGNORES=${{ inputs.working-directory }}/.trivyignore"
-        else
-          echo "TRIVY_IGNORES=" >> $GITHUB_ENV
-          echo "did not found trivy ignore"
-        fi
+        echo "TRIVY_IGNORES=$trivyignore_file" >> $GITHUB_ENV
+        # if [ -f "${{ inputs.working-directory }}/.trivyignore" ]; then
+        #  echo "TRIVY_IGNORES=${{ inputs.working-directory }}/.trivyignore" >> $GITHUB_ENV
+        #  echo "TRIVY_IGNORES=${{ inputs.working-directory }}/.trivyignore"
+        #else
+        #  echo "TRIVY_IGNORES=" >> $GITHUB_ENV
+        #  echo "did not found trivy ignore"
+        # fi
       shell: bash
       env:
         WORKING_DIR: ${{ inputs.working-directory }}
