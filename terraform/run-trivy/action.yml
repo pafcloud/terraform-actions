@@ -46,12 +46,14 @@ runs:
                 cd ..
             done
         }
-        search_stop_dir="$PWD"
+        # search_stop_dir="$PWD"
+        search_stop_dir="/"
         cd "${{ inputs.working-directory }}"
         
         echo "current working directory from env=$PWD"
         pwd
         echo "inputs-work-dir= ${{ inputs.working-directory }}"
+        echo "search_stop_dir= $search_stop_dir"
         echo "search_stop_dir= $search_stop_dir"
         
         # search_stop_dir="${{ inputs.working-directory }}"
