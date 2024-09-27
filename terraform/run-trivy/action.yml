@@ -75,7 +75,7 @@ runs:
         echo "--------"
         echo "Found Trivy ignore file: $trivyignore_file"
         echo "--------"
-        echo "TRIVY_IGNORES=$trivyignore_file" >> $GITHUB_ENV
+        # echo "TRIVY_IGNORES=$trivyignore_file" >> $GITHUB_ENV
         # if [ -f "${{ inputs.working-directory }}/.trivyignore" ]; then
         #  echo "TRIVY_IGNORES=${{ inputs.working-directory }}/.trivyignore" >> $GITHUB_ENV
         #  echo "TRIVY_IGNORES=${{ inputs.working-directory }}/.trivyignore"
