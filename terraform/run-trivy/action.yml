@@ -38,7 +38,7 @@ runs:
       run: |
         findfile() {
             file="$1"
-            while [ "$PWD" != "$search_stop_dir" -a "$PWD" != "/" ]; do
+            while [ "$PWD" != "/" ]; do
                 if [ -r "$file" ]; then
                   echo "$PWD/$file"
                   break
@@ -47,42 +47,19 @@ runs:
             done
         }
         saved_dir="$PWD"
-        search_stop_dir="/"
-        cd "${{ inputs.working-directory }}"
-        
-        echo "current working directory from env=$PWD"
-        # pwd
-        echo "inputs-work-dir= ${{ inputs.working-directory }}"
-        echo "saved_working_dir= $saved_dir"
-        # echo "search_stop_dir= $search_stop_dir"
-        # echo "search_stop_dir= $search_stop_dir"
-        
-        # search_stop_dir="${{ inputs.working-directory }}"
+        # cd "${{ inputs.working-directory }}"       
+
         trivyignore_file=""
         trivyignore_file="$(findfile .trivyignore)"
         cd $saved_dir
-        pwd
         if [[ -z "$trivyignore_file" ]]; then
-            echo ".trivyignore file not found or is empty"
+            echo ".trivyignore file not found or empty"
             echo "TRIVY_IGNORES=" >> $GITHUB_ENV
-
         else
-            echo ".trivyignore file found at: $trivyignore_file"
             cp "$trivyignore_file" "${{ inputs.working-directory }}"
-            echo "TRIVY_IGNORES=${{ inputs.working-directory }}/.trivyignore"
-            ls -la ${{ inputs.working-directory }}
+            echo ".trivyignore file found at: $trivyignore_file"
+            echo "TRIVY_IGNORES=${{ inputs.working-directory }}.trivyignore"
         fi
-        echo "--------"
-        echo "Found Trivy ignore file: $trivyignore_file"
-        echo "--------"
-        # echo "TRIVY_IGNORES=$trivyignore_file" >> $GITHUB_ENV
-        # if [ -f "${{ inputs.working-directory }}/.trivyignore" ]; then
-        #  echo "TRIVY_IGNORES=${{ inputs.working-directory }}/.trivyignore" >> $GITHUB_ENV
-        #  echo "TRIVY_IGNORES=${{ inputs.working-directory }}/.trivyignore"
-        #else
-        #  echo "TRIVY_IGNORES=" >> $GITHUB_ENV
-        #  echo "did not found trivy ignore"
-        # fi
       shell: bash
       env:
         WORKING_DIR: ${{ inputs.working-directory }}
