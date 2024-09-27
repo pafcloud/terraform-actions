@@ -33,13 +33,47 @@ runs:
       env:
         TF_PLAN: ${{ inputs.terraform-plan }}
         WORKING_DIR: ${{ inputs.working-directory }}
+        
+    - id: check-trivyignore
+      run: |
+        findfile() {
+            file="$1"
+            while [ "$PWD" != "/" ]; do
+                if [ -r "$file" ]; then
+                  echo "$PWD/$file"
+                  break
+                fi
+                cd ..
+            done
+        }
+        pushd $PWD
+        cd "$WORKING_DIR"       
 
+        trivyignore_file=""
+        trivyignore_file="$(findfile .trivyignore)"
+
+        popd
+        if [[ -z "$trivyignore_file" ]]; then
+            echo ".trivyignore file not found or empty"
+            echo "TRIVY_IGNORES=" >> $GITHUB_ENV
+        else
+            if [ ! -e "$PWD/$WORKING_DIR.trivyignore" ]; then
+              cp "$trivyignore_file" "$WORKING_DIR"
+            fi
+            echo ".trivyignore file found at: $trivyignore_file"
+            echo "TRIVY_IGNORES=$WORKING_DIR.trivyignore" >> $GITHUB_ENV
+        fi
+      shell: bash
+      env:
+        WORKING_DIR: ${{ inputs.working-directory }}
+        
     - id: run
-      uses: aquasecurity/trivy-action@d710430a6722f083d3b36b8339ff66b32f22ee55 # 0.19.0
+      uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8 # 0.24.0
       with:
         scan-type: config
         scan-ref: ${{ inputs.working-directory }}/plan.tfplan
         severity: ${{ inputs.trivy-severity }}
+        trivyignores: ${{ env.TRIVY_IGNORES }}
         output: trivy.out
       continue-on-error: true
 
