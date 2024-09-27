@@ -51,7 +51,7 @@ runs:
 
         trivyignore_file=""
         trivyignore_file="$(findfile .trivyignore)"
-        # cd $saved_dir
+        cd $saved_dir
         if [[ -z "$trivyignore_file" ]]; then
             echo ".trivyignore file not found or empty"
             echo "TRIVY_IGNORES=" >> $GITHUB_ENV
