@@ -56,7 +56,9 @@ runs:
             echo ".trivyignore file not found or empty"
             echo "TRIVY_IGNORES=" >> $GITHUB_ENV
         else
-            cp "$trivyignore_file" "${{ inputs.working-directory }}"
+            if [ ! -e "{{ inputs.working-directory }}/.trivyignore" ]; then
+              cp "$trivyignore_file" "${{ inputs.working-directory }}"
+            fi
             echo ".trivyignore file found at: $trivyignore_file"
             echo "TRIVY_IGNORES=${{ inputs.working-directory }}.trivyignore" >> $GITHUB_ENV
         fi
