@@ -46,7 +46,7 @@ runs:
                 cd ..
             done
         }
-        pushd
+        pushd $PWD
         cd "$WORKING_DIR"       
 
         trivyignore_file=""
