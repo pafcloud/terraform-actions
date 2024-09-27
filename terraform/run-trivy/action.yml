@@ -58,7 +58,7 @@ runs:
         else
             cp "$trivyignore_file" "${{ inputs.working-directory }}"
             echo ".trivyignore file found at: $trivyignore_file"
-            echo "TRIVY_IGNORES=${{ inputs.working-directory }}.trivyignore"
+            echo "TRIVY_IGNORES=${{ inputs.working-directory }}.trivyignore" >> $GITHUB_ENV
         fi
       shell: bash
       env:
