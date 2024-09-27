@@ -70,6 +70,7 @@ runs:
             echo ".trivyignore file found at: $trivyignore_file"
             cp "$trivyignore_file" "${{ inputs.working-directory }}"
             echo "TRIVY_IGNORES=${{ inputs.working-directory }}/.trivyignore"
+            ls -la ${{ inputs.working-directory }}
         fi
         echo "--------"
         echo "Found Trivy ignore file: $trivyignore_file"
