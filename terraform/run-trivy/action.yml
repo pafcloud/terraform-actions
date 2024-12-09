@@ -75,7 +75,7 @@ runs:
         severity: ${{ inputs.trivy-severity }}
         trivyignores: ${{ env.TRIVY_IGNORES }}
         output: trivy.out
-      #continue-on-error: true
+      continue-on-error: true
 
     - id: post
       run: |
