@@ -74,7 +74,7 @@ runs:
         scan-ref: ${{ inputs.working-directory }}/plan.tfplan
         severity: ${{ inputs.trivy-severity }}
         #trivyignores: ${{ env.TRIVY_IGNORES }}
-        output: trivy.out
+        #output: trivy.out
       #continue-on-error: true
 
     - id: post
