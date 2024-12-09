@@ -73,12 +73,13 @@ runs:
         scan-type: config
         scan-ref: ${{ inputs.working-directory }}/plan.tfplan
         severity: ${{ inputs.trivy-severity }}
-        trivyignores: ${{ env.TRIVY_IGNORES }}
+        #trivyignores: ${{ env.TRIVY_IGNORES }}
         output: trivy.out
       #continue-on-error: true
 
     - id: post
       run: |
+        cat trivy.out
         echo "output<<EOF" >> $GITHUB_OUTPUT
         cat trivy.out >> $GITHUB_OUTPUT
         echo EOF >> $GITHUB_OUTPUT
