@@ -68,7 +68,7 @@ runs:
         WORKING_DIR: ${{ inputs.working-directory }}
         
     - id: run
-      uses: aquasecurity/trivy-action@0.29.0
+      uses: aquasecurity/trivy-action@0.24.0
       with:
         scan-type: config
         scan-ref: ${{ inputs.working-directory }}/plan.tfplan
@@ -76,6 +76,8 @@ runs:
         trivyignores: ${{ env.TRIVY_IGNORES }}
         output: trivy.out
       continue-on-error: true
+      env:
+        TRIVY_CHECKS_BUNDLE_REPOSITORY: mirror.gcr.io/aquasec/trivy-checks:1
 
     - id: post
       run: |
