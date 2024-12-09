@@ -77,7 +77,7 @@ runs:
         output: trivy.out
       continue-on-error: true
       env:
-        TRIVY_CHECKS_BUNDLE_REPOSITORY: mirror.gcr.io/aquasec/trivy-checks:1
+        TRIVY_CHECKS_BUNDLE_REPOSITORY: mirror.gcr.io/aquasec/trivy-checks:0
 
     - id: post
       run: |
