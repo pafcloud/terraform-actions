@@ -68,7 +68,7 @@ runs:
         WORKING_DIR: ${{ inputs.working-directory }}
         
     - id: run
-      uses: aquasecurity/trivy-action@18f2510ee396bbf400402947b394f2dd8c87dbb0 # 0.29.0
+      uses: aquasecurity/trivy-action@0.29.0
       with:
         scan-type: config
         scan-ref: ${{ inputs.working-directory }}/plan.tfplan
