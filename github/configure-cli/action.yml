@@ -43,7 +43,7 @@ runs:
 
         if [ ! -z "$SSH_KEY_PEM" ]; then
           echo "Configuring SSH private key"
-          mkdir -m 0700 ~/.ssh
+          mkdir -p -m 0700 ~/.ssh
           echo "$SSH_KEY_PEM" > ~/.ssh/id_rsa
           chmod 0600 ~/.ssh/id_rsa
         fi
