@@ -66,3 +66,4 @@ runs:
         TF_IN_AUTOMATION: yes
         # See https://www.terraform.io/cli/config/environment-variables#tf_input
         TF_INPUT: false
+        TG_LOG_FORMAT: bare
